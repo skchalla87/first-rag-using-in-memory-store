@@ -7,7 +7,7 @@ from typing import List, Tuple
   
 class EmbeddingGenerator:
         """Generates vector embeddings using Ollama's embedding model"""
-        ß
+        
         def __init__(self, model: str = "nomic-embed-text"):
             """
             Args:

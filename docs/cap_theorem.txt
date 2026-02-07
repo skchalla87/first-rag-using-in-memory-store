@@ -1,0 +1,69 @@
+CAP Theorem
+
+Statement:
+In a distributed system, you can have at most two of three properties:
+- Consistency: All nodes see the same data at the same time
+- Availability: Every request receives a response (success or failure)
+- Partition Tolerance: System continues operating despite network partitions
+
+Why You Can't Have All Three:
+
+During a network partition, you must choose:
+
+CP (Consistency + Partition Tolerance):
+- Reject requests to maintain consistency
+- Example: Banking systems, etcd, HBase
+- Sacrifice: Availability during partitions
+- Real scenario: ATM shows "service unavailable" rather than wrong balance
+
+AP (Availability + Partition Tolerance):
+- Serve requests with potentially stale data
+- Example: DNS, Cassandra (with eventual consistency), DynamoDB
+- Sacrifice: Consistency (temporarily)
+- Real scenario: Social media post might take seconds to appear everywhere
+
+CA (Consistency + Availability):
+- Only possible without partitions
+- Not realistic in distributed systems
+- Example: Single-node databases, RDBMS on one machine
+- Problem: Networks always partition eventually
+
+Misunderstandings:
+
+"CAP means choose 2 of 3":
+Not quite. Partition tolerance is mandatory in distributed systems (networks partition). You choose between C and A during partitions.
+
+"NoSQL is AP, SQL is CP":
+Oversimplification. Modern databases offer tunable consistency:
+- Cassandra: Can configure strong consistency (CP) or eventual (AP)
+- MongoDB: Can be CP or AP depending on configuration
+- PostgreSQL with replication: Configurable
+
+PACELC Extension:
+More nuanced: "If Partition, choose A or C, Else (normal operation) choose Latency or Consistency"
+- PA/EL: Available during partition, low latency normally (Cassandra, DynamoDB)
+- PC/EC: Consistent during partition, consistent normally (HBase, MongoDB default)
+- PA/EC: Available during partition, consistent normally (rare)
+
+Practical Implications:
+
+Financial systems:
+- Choose CP: Consistency critical (no double-spending)
+- Reject requests during partitions
+- Example: ATM declines if can't verify balance
+
+Social media:
+- Choose AP: Availability critical (users can always post)
+- Accept eventual consistency (likes/comments appear with delay)
+- Example: Twitter, Facebook
+
+Real-world Strategies:
+- Session data: AP (stale session data is acceptable)
+- Shopping cart: AP (users can add items, conflicts resolved later)
+- Inventory: CP (can't oversell products)
+- User profiles: AP (stale profile picture is fine)
+
+Related Concepts:
+- BASE (Basically Available, Soft state, Eventual consistency)
+- ACID (Atomicity, Consistency, Isolation, Durability)
+- Two-phase commit (tries to achieve CA, fails under partitions)

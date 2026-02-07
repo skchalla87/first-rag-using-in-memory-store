@@ -1,0 +1,34 @@
+Leader Election Pattern
+
+Problem:
+In distributed systems, multiple nodes need to coordinate their actions. Without a designated leader, nodes might make conflicting decisions, leading to inconsistency. When the current leader fails, the system must quickly elect a new one to maintain availability.
+
+Solution:
+Leader election algorithms allow nodes in a distributed system to agree on a single leader. The leader coordinates actions like assigning tasks, managing distributed transactions, or sequencing operations.
+
+Common Algorithms:
+
+Raft Consensus:
+Uses randomized election timeouts (typically 150-300ms). When a follower doesn't receive heartbeats from the leader, it becomes a candidate and requests votes. Candidates increment their term number and vote for themselves. Other nodes vote for the first candidate in each term. A candidate receiving majority votes becomes the leader.
+
+Bully Algorithm:
+Each process has a unique ID. When a process detects leader failure, it sends election messages to all processes with higher IDs. If no higher-ID process responds, it becomes the leader. If a higher-ID process responds, it takes over the election. The process with the highest ID always wins.
+
+Zab (ZooKeeper Atomic Broadcast):
+Similar to Raft but optimized for ZooKeeper's use case. Uses epochs (similar to Raft terms) and ensures all previous epochs' transactions are committed before a new leader begins.
+
+Key Properties:
+- Safety: At most one leader per term/epoch
+- Liveness: Eventually, a leader is elected (assuming network heals)
+- Fault tolerance: Tolerates minority node failures
+
+Challenges:
+- Split-brain: Network partition can lead to multiple leaders
+- Timing assumptions: Many algorithms assume bounded message delays
+- Failure detection: Distinguishing slow nodes from crashed nodes
+
+Real-world Usage:
+- etcd: Uses Raft for leader election
+- Consul: Raft-based consensus
+- Kafka: Controller election via ZooKeeper
+- Elasticsearch: Master node election

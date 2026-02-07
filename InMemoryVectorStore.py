@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import numpy as np
 
 class InMemoryVectorStore:
@@ -17,7 +17,7 @@ class InMemoryVectorStore:
         else:
             self.embeddings = np.vstack([self.embeddings, embeddings])
             
-    def cosine_similarity(slef, vec1: np.ndarray, vec2: np.ndarray) -> float:
+    def cosine_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:
         """Calculate cosine similarity between two vectors"""
         
         dot_product = np.dot(vec1, vec2)

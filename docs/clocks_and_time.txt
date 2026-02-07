@@ -1,0 +1,137 @@
+Distributed Clocks and Time
+
+The Time Problem:
+- Physical clocks drift (up to seconds per day)
+- Network delays are unpredictable
+- No global clock across machines
+- "What happened before what?" is fundamental
+
+Physical Clocks:
+
+NTP (Network Time Protocol):
+- Synchronizes to time servers
+- Accuracy: ~1-50ms over internet
+- Better in datacenters (<1ms)
+- Still not perfectly synchronized
+
+GPS/Atomic Clocks:
+- Much more accurate
+- Expensive to deploy
+- Google Spanner uses TrueTime (GPS + atomic)
+
+Clock Drift:
+- Quartz oscillators vary with temperature
+- Typical drift: 10-20 ppm (1-2 seconds per day)
+- Leap seconds add complexity
+
+Logical Clocks:
+
+Lamport Timestamps:
+
+Concept:
+- Each process has a counter
+- Increment before each event
+- Attach timestamp to messages
+- On receive: max(local, received) + 1
+
+Properties:
+- If A happened-before B, then L(A) < L(B)
+- NOT the reverse: L(A) < L(B) doesn't mean A happened-before B
+- Cannot determine causal relationship from timestamps alone
+
+Vector Clocks:
+
+Concept:
+- Each process maintains vector of all process counters
+- Vector[i] = logical time of process i as known to this process
+
+Operations:
+- Local event: Increment own counter
+- Send: Include entire vector
+- Receive: Take element-wise max, then increment own
+
+Properties:
+- Can detect causality: V1 < V2 means V1 happened-before V2
+- Can detect concurrency: Neither V1 < V2 nor V2 < V1
+- Size grows with number of processes
+
+Example:
+Process A: [1,0,0] -> [2,0,0] -> [3,0,0]
+Process B: [0,1,0] -> receives from A -> [2,2,0]
+Now B knows about A's events up to 2
+
+Version Vectors:
+
+Similar to vector clocks but for data versioning
+
+Used in:
+- Dynamo-style databases
+- Conflict detection in replicated systems
+
+Hybrid Logical Clocks (HLC):
+
+Combines physical and logical time
+
+Structure:
+- Physical component (wall clock)
+- Logical component (counter)
+
+Benefits:
+- Captures causality like vector clocks
+- Bounded size (doesn't grow with processes)
+- Can approximate real time
+
+Used in:
+- CockroachDB
+- MongoDB
+
+Happened-Before Relationship:
+
+Definition (Lamport):
+a → b (a happened-before b) if:
+1. Same process and a before b
+2. a is send and b is corresponding receive
+3. Transitivity: a → c and c → b, then a → b
+
+Concurrent Events:
+- Neither a → b nor b → a
+- Must handle both orderings
+
+Causal Consistency:
+- If a → b, everyone sees a before b
+- Concurrent events can be seen in any order
+
+Time in Distributed Databases:
+
+Spanner's TrueTime:
+- Returns interval [earliest, latest]
+- Guaranteed: actual time is within interval
+- Enables external consistency:
+  - Commit timestamp assigned after commit
+  - Wait out uncertainty (commit-wait)
+
+Timestamp Ordering:
+- Transactions ordered by timestamps
+- Read latest committed version <= read timestamp
+- Conflicts detected by version comparison
+
+MVCC (Multi-Version Concurrency Control):
+- Keep multiple versions with timestamps
+- Readers see consistent snapshot
+- Writers don't block readers
+
+Practical Considerations:
+
+Clock Skew:
+- Max difference between any two clocks
+- Must account for in protocols
+- Cassandra: configurable write timestamp
+
+Ordering in Logs:
+- Kafka: Partition-level ordering only
+- Total ordering requires consensus (expensive)
+
+Timeout Calibration:
+- Heartbeat: 150-300ms typically
+- Election timeout: 10x heartbeat
+- Consider network latency variance

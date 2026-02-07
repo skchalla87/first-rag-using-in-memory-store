@@ -1,0 +1,107 @@
+Replication Patterns
+
+Why Replicate:
+- High availability: System survives node failures
+- Fault tolerance: Data not lost if node fails
+- Scalability: Read queries distributed across replicas
+- Low latency: Serve requests from geographically closer replica
+
+Replication Strategies:
+
+Primary-Backup (Leader-Follower):
+- One primary (leader) handles writes
+- Multiple backups (followers) replicate from primary
+- Reads can be served by followers (eventual consistency) or primary (strong consistency)
+- Examples: PostgreSQL replication, MySQL replication, MongoDB
+
+Synchronous vs Asynchronous:
+
+Synchronous Replication:
+- Primary waits for acknowledgment from replicas
+- Guarantees replicas have the data before acknowledging client
+- Pros: Strong consistency, no data loss
+- Cons: Slower writes, unavailable if replica down
+- Use when: Consistency is critical (financial data)
+
+Asynchronous Replication:
+- Primary acknowledges client immediately
+- Replicates to backups in background
+- Pros: Fast writes, available even if replicas down
+- Cons: Data loss if primary fails before replication
+- Use when: Availability and performance critical (caching, analytics)
+
+Semi-synchronous:
+- Wait for at least one replica (but not all)
+- Balance between performance and durability
+- Used by MySQL semi-sync replication
+
+Multi-Leader Replication:
+
+Problem:
+- Single leader is bottleneck
+- High latency for clients far from leader
+
+Solution:
+- Multiple nodes accept writes
+- Replicate changes between leaders
+- Examples: Cassandra, DynamoDB, CouchDB
+
+Challenges:
+- Write conflicts (concurrent updates to same data)
+- Conflict resolution strategies:
+  - Last-write-wins (LWW): Use timestamp, loses data
+  - Version vectors: Track causality, application resolves
+  - CRDTs: Mathematically proven conflict-free
+
+Leaderless Replication:
+
+Dynamo-style:
+- Client sends writes to multiple nodes
+- Quorum: R + W > N ensures consistency
+- No leader, all nodes equal
+- Examples: Cassandra, Riak, DynamoDB
+
+Advantages:
+- No single point of failure
+- High availability
+- Configurable consistency
+
+Disadvantages:
+- Complex conflict resolution
+- Read repairs needed
+- Anti-entropy (background sync) required
+
+Replication Lag:
+
+Problems:
+- Reading your writes: Might not see your own update
+- Monotonic reads: Might see newer data, then older (time goes backwards)
+- Consistent prefix reads: Might see effects before causes
+
+Solutions:
+- Read from leader (slower, guaranteed fresh)
+- Session consistency (route user to same replica)
+- Causal consistency (track dependencies)
+
+Real-world Patterns:
+
+Read-heavy workloads:
+- Async replication with many read replicas
+- Example: News sites, blogs
+
+Write-heavy workloads:
+- Multi-leader or leaderless
+- Example: IoT data collection
+
+Global distribution:
+- Multi-leader with regional leaders
+- Example: Google Spanner (regions), DynamoDB Global Tables
+
+Critical data:
+- Synchronous replication to multiple zones
+- Example: Banking systems
+
+Monitoring Replication:
+- Replication lag: Time difference between primary and replica
+- Replica staleness: How old is replica's data
+- Replication throughput: Bytes/second replicated

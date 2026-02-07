@@ -1,3 +1,5 @@
+from typing import List
+
 class DocumentChunker:
     """Splits Documents into manageable chunks for better preservation"""
     

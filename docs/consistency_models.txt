@@ -1,0 +1,13 @@
+Consistency models define the rules for how operations on data objects appear to different processes in a distributed system.
+
+1. Strong Consistency:
+After an update completes, any subsequent access will return the updated value. This is the hardest to achieve in distributed systems but the easiest for developers to reason about.
+
+2. Eventual Consistency:
+If no new updates are made to a given data item, eventually all accesses to that item will return the last updated value. This model is highly available and used in systems like DNS and Amazon's Dynamo.
+
+3. Causal Consistency:
+Ensures that operations that are causally related are seen by every node in the same order. Operations that are not causally related are considered concurrent.
+
+4. Read-Your-Writes Consistency:
+A process that has updated a data item will always see the updated value and never an older value.

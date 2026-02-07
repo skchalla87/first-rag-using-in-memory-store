@@ -1,0 +1,149 @@
+Data Partitioning and Sharding
+
+Why Partition?
+- Single machine can't hold all data
+- Single machine can't handle all queries
+- Geographic distribution requirements
+- Fault isolation
+
+Partitioning Strategies:
+
+Range Partitioning:
+- Data divided by key ranges
+- Example: A-M on shard1, N-Z on shard2
+
+Pros:
+- Range queries efficient
+- Simple to understand
+
+Cons:
+- Hot spots if keys not uniformly distributed
+- Requires rebalancing as data grows
+
+Used in: HBase, Spanner, Bigtable
+
+Hash Partitioning:
+- Hash function determines partition
+- Example: hash(key) mod N
+
+Pros:
+- More uniform distribution
+- No hot spots for random keys
+
+Cons:
+- Range queries require scatter-gather
+- Adding nodes requires data movement
+
+Used in: Cassandra (with consistent hashing), DynamoDB
+
+Consistent Hashing:
+
+Traditional hash % N:
+- Adding/removing nodes moves most keys
+- Very expensive rebalancing
+
+Consistent hashing:
+- Keys and nodes on hash ring
+- Key assigned to next node clockwise
+- Adding node: Only neighbors affected
+- Virtual nodes for better distribution
+
+Example:
+Ring: 0 ----[node_A]--- 100 ---[node_B]--- 200 ---[node_C]--- 300
+Key with hash 150 goes to node_B
+
+Virtual Nodes:
+- Each physical node has multiple ring positions
+- More uniform key distribution
+- Better load balancing during failures
+
+Used in: Cassandra, DynamoDB, Riak, Chord DHT
+
+Directory-Based Partitioning:
+- Lookup service knows where each key lives
+- Maximum flexibility
+- Single point of failure/bottleneck
+
+Partition Types:
+
+Horizontal Partitioning (Sharding):
+- Split rows across partitions
+- Each partition has same schema
+- Example: Users 1-1M on shard1, 1M-2M on shard2
+
+Vertical Partitioning:
+- Split columns across partitions
+- Different tables on different servers
+- Example: User profiles on one DB, user activity on another
+
+Functional Partitioning:
+- Split by functionality
+- Example: Orders service has its own database
+
+Common Challenges:
+
+Cross-Partition Queries:
+- Must query multiple partitions
+- Higher latency, more complexity
+- Solutions: Denormalization, secondary indexes
+
+Joins Across Partitions:
+- Very expensive (shuffle data)
+- Often avoided in sharded systems
+- Pre-join data when possible
+
+Hot Partitions:
+- Uneven load distribution
+- Celebrity accounts, viral content
+- Solutions: Further split hot partitions, add randomness to keys
+
+Rebalancing:
+
+Triggers:
+- Data growth (partition too large)
+- Node addition/removal
+- Hot spot mitigation
+
+Strategies:
+- Fixed partitions: Pre-create many partitions, assign to nodes
+- Dynamic partitions: Split when too large, merge when too small
+- Proportional to nodes: Fixed partitions per node
+
+Minimizing Impact:
+- Move partitions without downtime
+- Rate limit data transfer
+- Use consistent hashing
+
+Secondary Indexes:
+
+Local Index (document-partitioned):
+- Each partition indexes its own data
+- Writes: Update one index
+- Reads: Scatter-gather all partitions
+
+Global Index (term-partitioned):
+- Index itself is partitioned
+- Writes: Update multiple partitions (slow, async usually)
+- Reads: Query one partition
+
+Trade-off:
+- Local: Faster writes, slower reads
+- Global: Slower writes, faster reads
+
+Geo-Partitioning:
+
+Strategies:
+- Partition by region (users in Europe on EU servers)
+- Read replicas in each region
+- Active-active with conflict resolution
+
+Considerations:
+- Data residency requirements (GDPR)
+- Latency optimization
+- Disaster recovery
+- Cross-region consistency
+
+Examples:
+- CockroachDB: Geo-partitioned tables
+- Spanner: Region-aware replication
+- Cassandra: Datacenter-aware replication

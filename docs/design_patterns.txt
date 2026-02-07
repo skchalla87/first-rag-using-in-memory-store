@@ -1,0 +1,164 @@
+Distributed System Design Patterns
+
+Service Discovery:
+
+Problem:
+How do services find each other in dynamic environments?
+
+Patterns:
+1. Client-side discovery:
+   - Client queries registry, picks instance
+   - Example: Netflix Eureka
+   
+2. Server-side discovery:
+   - Load balancer queries registry
+   - Example: AWS ELB, Kubernetes Service
+
+Service Registry:
+- Consul: Service mesh, health checking
+- etcd: Key-value store, Kubernetes uses it
+- ZooKeeper: Coordination service
+
+Circuit Breaker:
+
+Problem:
+Cascading failures when downstream service fails
+
+States:
+- Closed: Requests pass through normally
+- Open: Requests fail immediately (no calls to failing service)
+- Half-Open: Test if service recovered
+
+Implementation:
+- Track failure count/rate
+- Trip breaker above threshold
+- Periodic probes to check recovery
+- Libraries: Resilience4j, Hystrix (deprecated)
+
+Bulkhead Pattern:
+
+Problem:
+One component failure affects entire system
+
+Solution:
+- Isolate components into pools
+- Limit resources per pool
+- Failure in one pool doesn't exhaust global resources
+
+Types:
+- Thread pool isolation
+- Connection pool isolation
+- Process isolation
+
+Retry with Backoff:
+
+Problem:
+Transient failures cause request failures
+
+Strategies:
+- Fixed delay: Retry after N seconds
+- Exponential backoff: 1s, 2s, 4s, 8s...
+- Jitter: Add randomness to prevent thundering herd
+
+Best Practices:
+- Set maximum retry count
+- Only retry idempotent operations
+- Use circuit breaker to stop retrying failed services
+
+Load Balancing:
+
+Algorithms:
+- Round Robin: Equal distribution
+- Weighted Round Robin: Based on capacity
+- Least Connections: Route to least busy
+- Consistent Hashing: Sticky sessions, caching
+- Random: Simple, surprisingly effective
+
+Levels:
+- L4 (Transport): TCP/UDP, fast but limited
+- L7 (Application): HTTP-aware, can route by path/header
+
+Health Checks:
+- Passive: Monitor response codes/latency
+- Active: Periodic health endpoint probes
+
+Event-Driven Architecture:
+
+Patterns:
+1. Event Notification:
+   - Service emits event
+   - Consumers react as needed
+   - Loose coupling
+
+2. Event-Carried State Transfer:
+   - Event contains all needed data
+   - Reduces need to query source
+
+3. Event Sourcing:
+   - Store events, not current state
+   - Rebuild state by replaying events
+   - Enables audit log, temporal queries
+
+4. CQRS (Command Query Responsibility Segregation):
+   - Separate read and write models
+   - Optimize each independently
+   - Often combined with event sourcing
+
+Message Brokers:
+- Apache Kafka: Log-based, high throughput
+- RabbitMQ: Traditional queue, routing flexibility
+- Amazon SQS: Managed, simple
+- NATS: Lightweight, low latency
+
+Sidecar Pattern:
+
+Concept:
+Deploy helper container alongside main application
+
+Use Cases:
+- Logging aggregation
+- Metrics collection
+- Service mesh proxy (Envoy)
+- TLS termination
+
+Benefits:
+- Language-agnostic infrastructure
+- Separate lifecycle from app
+- Consistent cross-cutting concerns
+
+Ambassador Pattern:
+
+Concept:
+Proxy that handles outbound connections
+
+Use Cases:
+- Connection pooling
+- Retry logic
+- Monitoring/logging external calls
+- Circuit breaking for outbound
+
+Anti-Corruption Layer:
+
+Problem:
+Integrating with legacy or third-party systems
+
+Solution:
+- Translate between domain models
+- Isolate your system from external complexity
+- Maintain clean internal domain
+
+Strangler Fig Pattern:
+
+Problem:
+How to migrate from monolith to microservices?
+
+Approach:
+1. Build new feature in new service
+2. Route traffic to new service
+3. Gradually migrate existing features
+4. Eventually retire old system
+
+Benefits:
+- Incremental migration
+- Reduced risk
+- Can pause/reverse if needed

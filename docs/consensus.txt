@@ -1,0 +1,91 @@
+Consensus in Distributed Systems
+
+Problem:
+Multiple nodes need to agree on a value or sequence of values despite failures and network issues. Used for coordinating distributed systems.
+
+Why Consensus is Hard:
+
+FLP Impossibility (Fischer, Lynch, Paterson):
+- Impossible to achieve consensus in asynchronous systems with even one faulty node
+- Assumes messages can be delayed arbitrarily
+- Real systems use timeouts to work around this (become "partially synchronous")
+
+Byzantine Generals Problem:
+- Nodes might be malicious (send different values to different nodes)
+- Requires 3f+1 nodes to tolerate f Byzantine failures
+- Blockchain uses Byzantine fault tolerance (BFT)
+
+Practical Consensus Algorithms:
+
+Paxos:
+- Proven correct but complex to understand
+- Two phases: Prepare and Accept
+- Roles: Proposer, Acceptor, Learner
+- Used by: Google Chubby, Spanner
+- Drawback: Difficult to implement correctly
+
+Raft:
+- Designed to be understandable
+- Leader-based: One node is leader, others are followers
+- Leader election + Log replication
+- Strong leader: All changes go through leader
+- Used by: etcd, Consul, CockroachDB
+- Easier to implement than Paxos
+
+ZAB (ZooKeeper Atomic Broadcast):
+- Similar to Raft but optimized for ZooKeeper
+- Primary-backup approach
+- Phases: Discovery, Synchronization, Broadcast
+- Used by: Apache ZooKeeper, Kafka (via ZooKeeper)
+
+Viewstamped Replication:
+- Predates Paxos (1988)
+- Similar to Raft conceptually
+- Less widely adopted
+
+Consensus Use Cases:
+
+Distributed Locks:
+- Multiple processes competing for a lock
+- Need to agree which process gets it
+- Example: Leader election
+
+Configuration Management:
+- Nodes need to agree on system configuration
+- Changes must be atomic across cluster
+- Example: etcd, Consul
+
+State Machine Replication:
+- Replicate deterministic state machine across nodes
+- All replicas execute same commands in same order
+- Example: Distributed databases
+
+Atomic Commit (2PC, 3PC):
+- All nodes commit or all abort a transaction
+- Coordinator proposes commit/abort
+- Participants vote
+- 2PC blocks if coordinator fails
+- 3PC tries to avoid blocking but is more complex
+
+Performance Considerations:
+
+Latency:
+- Minimum: One round-trip for leader to quorum
+- Typical: 2-3 round-trips (leader election + proposal)
+- Optimization: Read from leader without quorum (eventual consistency)
+
+Throughput:
+- Leader is bottleneck (all writes go through it)
+- Pipelining: Leader processes multiple requests concurrently
+- Batching: Group multiple requests into one consensus round
+
+Failures:
+- Minority failures: System continues (requires quorum)
+- Majority failures: System blocks (cannot reach quorum)
+- Recovery: Failed nodes catch up by replaying log
+
+Real-world Examples:
+- Google Spanner: Uses Paxos for consensus, TrueTime for timestamps
+- etcd: Raft-based key-value store, used by Kubernetes
+- CockroachDB: Raft for consensus per range
+- Consul: Raft for service discovery and configuration

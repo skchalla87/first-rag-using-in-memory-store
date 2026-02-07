@@ -1,0 +1,104 @@
+Consensus Algorithms
+
+Problem Statement:
+How do multiple nodes agree on a single value or sequence of values, even when some nodes fail?
+
+Why Consensus Matters:
+- Leader election (who's the primary database?)
+- Distributed transactions (did the payment go through?)
+- Configuration management (what's the current settings?)
+- Log replication (what's the order of operations?)
+
+Paxos Algorithm:
+
+Core Idea:
+Proposal-based voting with three phases
+
+Roles:
+- Proposers: Suggest values
+- Acceptors: Vote on proposals
+- Learners: Learn the decided value
+
+Basic Paxos Steps:
+1. Prepare Phase: Proposer sends prepare(n) to acceptors
+2. Promise Phase: Acceptors respond with promise if n > any seen proposal
+3. Accept Phase: Proposer sends accept(n, value) to acceptors
+4. Decided: Value is decided when majority accepts
+
+Problems with Basic Paxos:
+- Only decides single value
+- Multiple proposers can conflict (dueling proposers)
+- Complex to implement correctly
+
+Multi-Paxos:
+- Stable leader to reduce conflicts
+- Log of decisions, not just single value
+- Used in: Chubby, Spanner
+
+Raft Algorithm:
+
+Design Goal:
+Understandable consensus (alternative to Paxos)
+
+Key Simplifications:
+- Strong leader: All writes go through leader
+- Leader election: Randomized timeouts
+- Log matching: Logs only flow leader -> followers
+
+Raft States:
+- Follower: Passive, responds to RPCs
+- Candidate: Seeking to become leader
+- Leader: Handles all client requests
+
+Raft Terms:
+- Logical clock for detecting stale leaders
+- Each term has at most one leader
+- Higher term wins in conflicts
+
+Leader Election:
+1. Follower times out (no heartbeat)
+2. Becomes candidate, increments term
+3. Votes for self, requests votes from others
+4. Wins with majority, becomes leader
+5. Sends heartbeats to prevent new elections
+
+Log Replication:
+1. Client sends command to leader
+2. Leader appends to log
+3. Leader sends AppendEntries to followers
+4. Followers append and acknowledge
+5. Leader commits when majority replicated
+6. Leader applies to state machine
+
+Safety Properties:
+- Election Safety: One leader per term
+- Leader Append-Only: Never overwrites log
+- Log Matching: Same index+term = same command
+- Leader Completeness: Committed entries in future leaders
+
+Raft vs Paxos:
+- Raft: Easier to understand, stronger leader
+- Paxos: More flexible, better for some scenarios
+- Both: Require majority available (2f+1 nodes for f failures)
+
+Real-World Implementations:
+- etcd (Kubernetes): Raft
+- ZooKeeper: ZAB (Paxos-like)
+- Consul: Raft
+- CockroachDB: Raft
+- TiKV: Raft
+
+Byzantine Fault Tolerance:
+
+Problem:
+What if nodes lie or behave maliciously?
+
+PBFT (Practical Byzantine Fault Tolerance):
+- Tolerates f Byzantine faults with 3f+1 nodes
+- Three phases: pre-prepare, prepare, commit
+- Used in: Some blockchain systems
+
+When to Use BFT:
+- Untrusted environments (public blockchains)
+- High-security systems
+- Usually not needed in controlled datacenters

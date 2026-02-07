@@ -1,0 +1,58 @@
+Quorum Pattern
+
+Problem:
+In distributed systems with replicated data, reads and writes must balance consistency with availability. Strong consistency requires coordination, but waiting for all replicas is slow and fails if any replica is down.
+
+Solution:
+Use quorum-based replication where operations succeed when acknowledged by a majority of replicas, not all replicas.
+
+Core Concept:
+Given N replicas:
+- W = write quorum (number of replicas that must acknowledge writes)
+- R = read quorum (number of replicas that must respond to reads)
+- If R + W > N, reads and writes overlap, ensuring reads see latest writes
+
+Common Configurations:
+
+Majority Quorum (R=W=N/2+1):
+- Balanced between reads and writes
+- Tolerates floor(N/2) failures
+- Example: N=5, R=3, W=3 (tolerates 2 failures)
+
+Read-optimized (R=1, W=N):
+- Fast reads (any replica)
+- Slow writes (all replicas)
+- Use when reads >> writes
+
+Write-optimized (R=N, W=1):
+- Fast writes (any replica)
+- Slow reads (all replicas)
+- Use when writes >> reads
+
+Sloppy Quorum:
+- Allows writes to any N healthy nodes (not necessarily designated replicas)
+- Improves availability during failures
+- Used by Dynamo, Cassandra
+- Requires hinted handoff for consistency
+
+Vector Clocks and Conflict Resolution:
+When R + W ≤ N, concurrent writes can conflict. Systems use:
+- Last-write-wins (timestamp-based, loses data)
+- Vector clocks (tracks causality, clients resolve conflicts)
+- CRDTs (conflict-free replicated data types)
+
+Advantages:
+- Configurable consistency vs availability tradeoff
+- Tolerates minority node failures
+- No single point of failure
+
+Disadvantages:
+- Increased latency (must wait for quorum)
+- Read repairs needed for eventual consistency
+- Complex conflict resolution
+
+Real-world Usage:
+- Cassandra: Configurable consistency levels (ONE, QUORUM, ALL)
+- DynamoDB: R and W configurable per request
+- Riak: Tunable N, R, W parameters
+- etcd: Requires quorum for writes (Raft)

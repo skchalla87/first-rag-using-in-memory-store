@@ -1,0 +1,129 @@
+Distributed Transactions
+
+What is a Distributed Transaction?
+A transaction that spans multiple nodes, databases, or services and must maintain ACID properties across all participants.
+
+ACID in Distributed Systems:
+- Atomicity: All nodes commit or all abort
+- Consistency: Valid state transitions everywhere
+- Isolation: Concurrent transactions don't interfere
+- Durability: Committed data survives failures
+
+Two-Phase Commit (2PC):
+
+Coordinator-based protocol for atomic commits
+
+Phase 1 - Prepare:
+1. Coordinator sends PREPARE to all participants
+2. Each participant:
+   - Acquires locks, writes to WAL
+   - Responds VOTE_COMMIT or VOTE_ABORT
+   - Enters "prepared" state (can't unilaterally decide)
+
+Phase 2 - Commit/Abort:
+1. If all voted COMMIT: Coordinator sends GLOBAL_COMMIT
+2. If any voted ABORT: Coordinator sends GLOBAL_ABORT
+3. Participants execute decision and release locks
+
+2PC Problems:
+- Blocking: Participants block if coordinator fails
+- Single point of failure: Coordinator crash = uncertain state
+- Performance: Multiple round trips, long-held locks
+
+Three-Phase Commit (3PC):
+
+Adds pre-commit phase to reduce blocking
+
+Phases:
+1. CanCommit: Can you commit?
+2. PreCommit: Prepare to commit
+3. DoCommit: Actually commit
+
+Improvement:
+- Non-blocking (under certain failure models)
+- Participants can timeout and decide
+
+Limitation:
+- Doesn't work with network partitions
+- Rarely used in practice
+
+Saga Pattern:
+
+For long-running transactions across microservices
+
+Concept:
+- Break transaction into local transactions
+- Each has a compensating action (undo)
+- If one fails, execute compensations in reverse
+
+Example - Order Processing:
+1. Create Order -> Compensation: Cancel Order
+2. Reserve Inventory -> Compensation: Release Inventory
+3. Charge Payment -> Compensation: Refund Payment
+4. Ship Order -> Compensation: Initiate Return
+
+Coordination Styles:
+- Choreography: Services react to events
+- Orchestration: Central coordinator manages flow
+
+Saga Trade-offs:
++ No distributed locks
++ Better availability
+- Eventual consistency only
+- Complex compensation logic
+- Intermediate states visible
+
+Distributed Locking:
+
+Purpose:
+Ensure exclusive access to resources across nodes
+
+Implementations:
+- ZooKeeper: Ephemeral sequential nodes
+- Redis: SETNX with expiration (Redlock algorithm)
+- etcd: Lease-based locks
+- Database: SELECT FOR UPDATE with timeouts
+
+Redlock Algorithm (Redis):
+1. Get current time
+2. Try to acquire lock on N/2+1 nodes
+3. Calculate elapsed time
+4. If acquired majority and time < TTL, lock acquired
+5. If failed, unlock all nodes
+
+Fencing Tokens:
+- Problem: Client thinks it has lock but it expired
+- Solution: Monotonic tokens, server rejects stale tokens
+
+Distributed Deadlock:
+
+Detection:
+- Build wait-for graph across nodes
+- Look for cycles
+- Timeout-based detection
+
+Prevention:
+- Lock ordering
+- Wound-wait or wait-die schemes
+- Timeouts
+
+Resolution:
+- Victim selection (youngest transaction)
+- Rollback and retry
+
+Serializable Snapshot Isolation (SSI):
+
+Modern approach combining:
+- Snapshot isolation (readers don't block writers)
+- Serializable guarantees
+- Optimistic concurrency control
+
+Used in:
+- PostgreSQL
+- CockroachDB
+- FoundationDB
+
+How it works:
+- Track read/write dependencies
+- Detect dangerous structures at commit time
+- Abort one transaction if conflict detected

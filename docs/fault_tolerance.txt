@@ -1,0 +1,150 @@
+Fault Tolerance and Failure Modes
+
+Types of Failures:
+
+Crash Failures:
+- Node stops working completely
+- Easiest to handle (fail-stop)
+- Detected via heartbeat timeouts
+
+Omission Failures:
+- Messages lost or not delivered
+- Send omission: Node fails to send
+- Receive omission: Node fails to receive
+
+Timing Failures:
+- Response outside expected time bounds
+- Hard to distinguish from crash
+
+Byzantine Failures:
+- Node behaves arbitrarily (even maliciously)
+- Hardest to handle
+- Requires BFT protocols (3f+1 nodes for f failures)
+
+Network Failures:
+- Partition: Groups can't communicate
+- Delay: Messages slow but eventually delivered
+- Corruption: Messages altered (usually detected)
+
+Failure Detection:
+
+Heartbeat-Based:
+- Periodic "I'm alive" messages
+- Miss threshold = suspected failure
+- Trade-off: sensitivity vs false positives
+
+Phi Accrual Failure Detector:
+- Probabilistic detection
+- Outputs suspicion level (0-1)
+- Adapts to observed behavior
+- Used in: Akka, Cassandra
+
+SWIM Protocol:
+- Scalable membership protocol
+- Random probing with indirect pings
+- Sublinear message complexity
+- Used in: Serf, Consul
+
+Challenges:
+- Partial failures: Can't tell if remote died or network partitioned
+- Gray failures: Slow but not dead
+- Cannot achieve perfect failure detection
+
+Replication Strategies:
+
+Primary-Backup (Leader-Follower):
+- One leader handles writes
+- Followers replicate leader's log
+- Failover when leader dies
+
+Challenges:
+- Leader election
+- Detecting leader failure
+- Split-brain prevention
+
+Multi-Leader (Multi-Master):
+- Multiple nodes accept writes
+- Higher availability
+- Conflict resolution needed
+
+Leaderless (Dynamo-style):
+- Any node accepts writes
+- Quorum for consistency
+- Read repair, anti-entropy
+
+Quorum Systems:
+
+Basic Quorum:
+- N replicas total
+- W write quorum
+- R read quorum
+- Consistency requires: W + R > N
+
+Common Configurations:
+- Strong consistency: W = N, R = 1 (write-heavy)
+- Strong consistency: W = N/2+1, R = N/2+1 (balanced)
+- High availability: W = 1, R = N (read-heavy)
+
+Sloppy Quorum:
+- Allow writes to any N nodes (not necessarily replicas)
+- Hinted handoff: Forward to proper node later
+- Higher availability, weaker consistency
+
+Redundancy Patterns:
+
+Active-Active:
+- Multiple instances handle traffic
+- Load balanced
+- No failover needed
+
+Active-Passive:
+- Standby takes over on failure
+- Cold standby: Start on failure
+- Warm standby: Running but not serving
+- Hot standby: Synchronized, ready immediately
+
+N+1 Redundancy:
+- N active + 1 spare
+- Spare can cover any single failure
+
+Geographic Distribution:
+- Cross-datacenter replication
+- Higher latency, better disaster recovery
+
+Recovery Strategies:
+
+Checkpointing:
+- Periodic state snapshots
+- Recovery: Load checkpoint + replay log
+- Trade-off: Checkpoint frequency vs recovery time
+
+Write-Ahead Logging (WAL):
+- Log changes before applying
+- Recovery: Replay log from checkpoint
+- Foundation of database durability
+
+Compensation:
+- Can't undo? Execute compensating action
+- Saga pattern for distributed transactions
+
+Chaos Engineering:
+
+Concept:
+Intentionally inject failures to build confidence
+
+Principles:
+1. Define "steady state" (normal behavior)
+2. Hypothesize that steady state continues during failures
+3. Inject failures (network, disk, process)
+4. Look for differences from steady state
+
+Tools:
+- Chaos Monkey: Kill random instances
+- Gremlin: Commercial chaos platform
+- Litmus: Kubernetes-native
+
+Best Practices:
+- Start small (dev environment)
+- Have kill switch
+- Run during business hours (support available)
+- Measure and learn

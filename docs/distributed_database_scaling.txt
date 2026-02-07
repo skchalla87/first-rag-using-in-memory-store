@@ -1,0 +1,15 @@
+To handle large amounts of data and high request rates, distributed databases use scaling techniques:
+
+1. Vertical Scaling (Scaling Up):
+Increasing the capacity of a single machine (more CPU, RAM). It has physical limits and can be very expensive.
+
+2. Horizontal Scaling (Scaling Out):
+Adding more machines to the network. This is more flexible but adds complexity.
+
+3. Sharding (Data Partitioning):
+Breaking up a large database into smaller, more manageable parts called shards. Each shard is stored on a separate server instance.
+- Range-based sharding: Data is partitioned based on ranges of a key.
+- Hash-based sharding: A hash function is applied to a key to determine the shard.
+
+4. Replication:
+Keeping copies of the same data on multiple nodes. This improves availability and read performance but introduces consistency challenges (Leader-Follower vs. Multi-Leader replication).

@@ -1,0 +1,123 @@
+============================================================
+Basic RAG System - Simple Test
+============================================================
+
+Loading documents from ./docs...
+Found 13 documents
+Adding 13 documents to the system...
+Created 13 chunks from the documents
+Generating Embeddings...
+Documents added to Vector Store!!!
+
+❓ Enter your question: What is the CAP theorem?
+
+🔍 Retrieving relevant context for: '{question}'
+
+📚 Retrieved 3 relevant chunks:
+
+  1. (Similarity: 0.6313)
+     cap_theorem
+
+  2. (Similarity: 0.4878)
+     clocks_and_time
+
+  3. (Similarity: 0.4847)
+     fault_tolerance
+
+ 💭 Generating Answer...
+
+✅ Answer: The CAP theorem states that it's impossible for a distributed data store to simultaneously guarantee all three of the following:
+
+1. **C**onsistency (every read operation will see the most recent write or an error)
+2. **A**vailability (every request receives a response, without guarantee that it contains the most recent version of information)
+3. **P**artition tolerance (the system continues to operate even when there are network partitions between nodes)
+
+In simpler terms, the CAP theorem says you can have two out of three: consistency, availability, and partition tolerance.
+
+============================================================
+(.venv) santhoshchalla@Santhoshs-Mac-mini MyImplementation % python RAGSystem.py
+============================================================
+Basic RAG System - Simple Test
+============================================================
+
+Loading documents from ./docs...
+Found 13 documents
+Adding 13 documents to the system...
+Created 13 chunks from the documents
+Generating Embeddings...
+Documents added to Vector Store!!!
+
+❓ Enter your question: What's the difference between synchronous and asynchronous replication?
+
+🔍 Retrieving relevant context for: '{question}'
+
+📚 Retrieved 3 relevant chunks:
+
+  1. (Similarity: 0.6824)
+     replication
+
+  2. (Similarity: 0.5697)
+     clocks_and_time
+
+  3. (Similarity: 0.5285)
+     consistency_models
+
+ 💭 Generating Answer...
+
+✅ Answer: In the context of replication, the main difference between synchronous and asynchronous replication lies in when the data is considered to be consistent across all nodes or systems.
+
+**Synchronous Replication:**
+With synchronous replication, every write operation is immediately acknowledged by the system after it has been successfully replicated to a secondary node. This ensures that data consistency is maintained at all times, as any writes are only considered complete once they have been confirmed on both primary and secondary nodes. This approach provides high availability and durability but may introduce latency due to the need for confirmation of write operations.
+
+**Asynchronous Replication:**
+In asynchronous replication, a write operation does not wait for the completion of replication on secondary nodes before returning success. The data is committed locally and then asynchronously replicated to secondary nodes in the background. This approach generally offers higher performance by reducing latency but may result in temporary inconsistencies between primary and secondary nodes until the asynchronous replication process catches up.
+
+Therefore, the key difference between synchronous and asynchronous replication is how they manage the timing of write acknowledgments relative to when data is actually written to all nodes involved in the replication process.
+
+============================================================
+(.venv) santhoshchalla@Santhoshs-Mac-mini MyImplementation % python RAGSystem.py
+============================================================
+Basic RAG System - Simple Test
+============================================================
+
+Loading documents from ./docs...
+Found 13 documents
+Adding 13 documents to the system...
+Created 13 chunks from the documents
+Generating Embeddings...
+Documents added to Vector Store!!!
+
+❓ Enter your question: How does Kubernetes work?
+
+🔍 Retrieving relevant context for: '{question}'
+
+📚 Retrieved 3 relevant chunks:
+
+  1. (Similarity: 0.4942)
+     clocks_and_time
+
+  2. (Similarity: 0.4423)
+     consistency_models
+
+  3. (Similarity: 0.4365)
+     consensus_algorithms
+
+ 💭 Generating Answer...
+
+✅ Answer: I don't see any information about Kubernetes in the provided context. The given contexts are related to time management and data consistency, which is unrelated to container orchestration like Kubernetes.
+
+However, I can provide a general answer on how Kubernetes works based on my external knowledge.
+
+Kubernetes (also known as K8s) is an open-source container orchestration system for automating the deployment, scaling, and management of containerized applications. It was originally designed by Google, and is now maintained by the Cloud Native Computing Foundation (CNCF).
+
+Here's a high-level overview:
+
+1. **Pods**: The basic execution unit in Kubernetes is called a Pod, which is a logical host for one or more containers.
+2. **ReplicaSets**: ReplicaSets ensure that a specified number of replicas (i.e., copies) of a Pod are running at any given time.
+3. **Deployments**: Deployments manage the rollout of new versions of an application by creating and updating ReplicaSets.
+4. **Services**: Services provide a network identity and load balancing for accessing Pods from within the cluster.
+5. **Persistent Volumes (PVs)**: PVs provide persistent storage for data that needs to be retained even if the underlying Pod is deleted or recreated.
+
+Kubernetes uses various components, such as etcd (a distributed key-value store), API servers, and controllers, to manage the lifecycle of Pods, ReplicaSets, Deployments, and Services. It also supports multiple deployment strategies, including rolling updates and blue-green deployments.
+
+Please note that this is a simplified overview, and there's much more to Kubernetes than what I've mentioned here. If you have specific questions about Kubernetes or would like more information on any of the components I mentioned, feel free to ask!

@@ -138,7 +138,8 @@ if __name__ == "__main__":
     
     rag.load_documents('./docs')
     
-    # Test query
-    answer = rag.query("What are the tradeoffs?")
+    # Get query from user
+    question = input("\n❓ Enter your question: ")
+    answer = rag.query(question)
     print(f"\n✅ Answer: {answer}")
     print("\n" + "=" * 60)

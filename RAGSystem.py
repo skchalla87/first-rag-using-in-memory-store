@@ -3,9 +3,9 @@ RAG System - Main class that integrates chunking, embedding, and retrieval
 """
 from pathlib import Path
 import ollama
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
-from DocumentChunker import DocumentChunker
+from DocumentChunker import DocumentChunker, ParagraphChunker
 from EmbeddingGenerator import EmbeddingGenerator
 from InMemoryVectorStore import InMemoryVectorStore
 
@@ -17,18 +17,31 @@ class RAGSystem:
                  embedding_model: str = 'nomic-embed-text',
                  llm_model: str = "llama3.1",
                  chunk_size: int = 500,
-                 overlap: int = 50
+                 overlap: int = 50,
+                 chunker_type: str = "paragraph",   # "character" or "paragraph"
+                 parent_retrieval: bool = True       # fetch ALL chunks from matched docs
                  ):
-        
         """
         Args:
             embedding_model: Ollama model for embeddings
             llm_model: Ollama model for text generation
-            chunk_size: Size of document chunks
-            overlap: Overlap between chunks
+            chunk_size: Size of document chunks (used only for character chunker)
+            overlap: Overlap between chunks (used only for character chunker)
+            chunker_type: Chunking strategy:
+                - "character" : Fixed-size character windows with overlap (simple, can cut mid-word)
+                - "paragraph" : Splits on blank lines, keeps paragraphs intact (better semantic coherence)
+            parent_retrieval: If True, once any chunk from a document ranks in top-k,
+                              ALL chunks from that document are retrieved to give the LLM
+                              the full context of that document.
         """
-        self.chunker = DocumentChunker(chunk_size, overlap)
-        self.embedding_generator =  EmbeddingGenerator(embedding_model)
+        if chunker_type == "paragraph":
+            self.chunker = ParagraphChunker()
+        else:
+            self.chunker = DocumentChunker(chunk_size, overlap)
+        
+        self.chunker_type = chunker_type
+        self.parent_retrieval = parent_retrieval
+        self.embedding_generator = EmbeddingGenerator(embedding_model)
         self.vector_store = InMemoryVectorStore()
         self.llm_model = llm_model
         
@@ -52,17 +65,23 @@ class RAGSystem:
         print(f"Found {len(documents)} documents")
         self.add_documents(documents)
         
-    def add_documents(self, documents: List[str]):
-        """Add Documents to RAG system"""
+    def add_documents(self, documents: Dict[str, str]):
+        """Add Documents to RAG system
+        
+        Args:
+            documents: Dict of {doc_name: content}
+        """
         
         print(f"Adding {len(documents)} documents to the system...")
         
-        # chuck all documents
-        
+        # chunk all documents, tracking source name and chunk index
         all_chunks = []
-        for doc in documents:
-            chunks = self.chunker.chunk_text(doc)
-            all_chunks.extend(chunks)
+        all_metadata = []
+        for doc_name, doc_content in documents.items():
+            chunks = self.chunker.chunk_text(doc_content)
+            for chunk_index, chunk in enumerate(chunks):
+                all_chunks.append(chunk)
+                all_metadata.append({"source": doc_name, "chunk_index": chunk_index})
             
         print(f"Created {len(all_chunks)} chunks from the documents")
         
@@ -71,19 +90,48 @@ class RAGSystem:
         embeddings = self.embedding_generator.generate_embeddings(all_chunks)
         
         # Add Embeddings to Vector Store
-        self.vector_store.add_documents(all_chunks, embeddings)
+        self.vector_store.add_documents(all_chunks, embeddings, all_metadata)
         print("Documents added to Vector Store!!!")
         
-    def retrieve(self, query: str, top_k: int = 3) -> List[Tuple[str, float]]:
-        """Retrieve relevant documents for a query"""
+    @staticmethod
+    def _confidence_level(score: float) -> str:
+        """Map a similarity score to a human-readable confidence level"""
+        if score >= 0.70:
+            return "🟢 Very High"
+        elif score >= 0.60:
+            return "🟢 High"
+        elif score >= 0.50:
+            return "🟡 Medium"
+        else:
+            return "🔴 Low"
+    
+    def retrieve(self, query: str, top_k: int = 5, debug: bool = False) -> List[Tuple[str, float, dict]]:
+        """Retrieve relevant chunks for a query
+        
+        Args:
+            query: The search query
+            top_k: Number of top chunks to retrieve (before parent expansion)
+            debug: If True, print ALL chunk scores to see full ranking
+            
+        Returns:
+            List of (chunk_text, similarity_score, metadata) tuples
+        """
         # Generate query embedding
         query_embedding = self.embedding_generator.generate_embedding(query)
         
-        # Search vector store
-        results = self.vector_store.search(query_embedding, top_k)
-        return results
+        # Get ALL results for debugging
+        all_results = self.vector_store.search(query_embedding, top_k=len(self.vector_store.documents))
+        
+        if debug:
+            print("\n🔬 [DEBUG] Full ranking of ALL chunks:")
+            for rank, (doc, score, meta) in enumerate(all_results, 1):
+                source = meta.get("source", "unknown")
+                chunk_idx = meta.get("chunk_index", "?")
+                print(f"   {rank:>3}. [{source}] chunk {chunk_idx} — score: {score:.4f}")
+        
+        return self.vector_store.search(query_embedding, top_k=top_k, parent_retrieval=self.parent_retrieval)
     
-    def query(self, question: str, top_k : int = 3, verbose : bool = True) -> str:
+    def query(self, question: str, top_k : int = 5, verbose : bool = True) -> str:
         """
         Query the RAG system with a question
         
@@ -96,45 +144,56 @@ class RAGSystem:
             Generated answer
         """
         if verbose:
-            print("\n🔍 Retrieving relevant context for: '{question}'")
+            print(f"\n🔍 Retrieving relevant context for: '{question}'")
             
-        retrieved_docs = self.retrieve(question, top_k)
+        retrieved_docs = self.retrieve(question, top_k, debug=verbose)
         
         if verbose:
             print(f"\n📚 Retrieved {len(retrieved_docs)} relevant chunks:")
-            for i, (doc, score) in enumerate(retrieved_docs, 1):
-                print(f"\n  {i}. (Similarity: {score:.4f})")
+            for i, (doc, score, meta) in enumerate(retrieved_docs, 1):
+                confidence = self._confidence_level(score)
+                source = meta.get("source", "unknown")
+                chunk_idx = meta.get("chunk_index", "?")
+                print(f"\n  {i}. 📄 Source: [{source}] chunk {chunk_idx} | Confidence: {confidence} (score: {score:.4f})")
                 print(f"     {doc[:150]}..." if len(doc) > 150 else f"     {doc}")
                 
-        # combine retrieved context
-        context = "\n\n".join([doc for doc, _ in retrieved_docs])
+        # combine retrieved context (with source label for LLM)
+        context = "\n\n".join(
+            [f"[Source: {meta.get('source', 'unknown')}]\n{doc}" for doc, _, meta in retrieved_docs]
+        )
         
         # create prompt with context
-        prompt = f"""You are a helpful assistant. Use the following context to answer the question. 
-        if the answer is not in the context, say so.
-        
-        Context:
-        {context}
-        
-        Question: {question}
+        prompt = f"""You are a helpful assistant. Answer the question using ONLY the context provided below.
 
-        Answer:"""
+Rules:
+- Base your answer strictly on the context. Do NOT use outside knowledge.
+- If the context does not contain the answer, respond with: "I don't have information about this in the provided documents."
+- Quote or reference the source when possible.
+
+Context:
+{context}
+
+Question: {question}
+
+Answer:"""
         
         # Generate response
         if verbose:
             print(f"\n 💭 Generating Answer...")
+            #print(f"\n📝 Prompt being sent to LLM:\n{'='*60}\n{prompt}\n{'='*60}")
             
         response = ollama.generate(model=self.llm_model, prompt=prompt)
         return response['response']
     
 if __name__ == "__main__":
-    # Simple test
     print("=" * 60)
     print("Basic RAG System - Simple Test")
     print("=" * 60)
     
-    # Create RAG system
-    rag = RAGSystem()
+    # Choose chunking strategy:
+    #   "paragraph" - splits on blank lines, keeps paragraphs intact (recommended)
+    #   "character" - fixed-size windows with overlap (simpler, cuts mid-word)
+    rag = RAGSystem(chunker_type="paragraph")
     
     rag.load_documents('./docs')
     

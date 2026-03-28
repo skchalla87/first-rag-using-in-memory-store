@@ -113,5 +113,12 @@ Total: 13 → 21 documents.
 - BM25 must be rebuilt over the **full** corpus on every `add_documents` call — IDF values depend on the entire document set.
 - Re-ranking adds a model load cost at startup and inference cost per query, but only over the small candidate set — acceptable tradeoff for significantly better top-k precision.
 
+### Known Limitations
+- BM25 index rebuilds full corpus on every add_documents() call
+- Acceptable for current corpus size (~21 docs)
+- V2 (pgvector) will address this — BM25 index can be maintained 
+  incrementally or replaced with PostgreSQL full-text search (tsvector)
+  combined with pgvector for true hybrid search at scale
+
 ### Next Steps
 - Replace in-memory numpy store with a **persistent vector database** to avoid re-embedding on every run.

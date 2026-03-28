@@ -121,3 +121,120 @@ Here's a high-level overview:
 Kubernetes uses various components, such as etcd (a distributed key-value store), API servers, and controllers, to manage the lifecycle of Pods, ReplicaSets, Deployments, and Services. It also supports multiple deployment strategies, including rolling updates and blue-green deployments.
 
 Please note that this is a simplified overview, and there's much more to Kubernetes than what I've mentioned here. If you have specific questions about Kubernetes or would like more information on any of the components I mentioned, feel free to ask!
+
+Date: 28th Mar
+Changes: chunk size to 150 and overlap 50
+
+============================================================
+(.venv) santhoshchalla@Santhoshs-Mac-mini MyImplementation % python RAGSystem.py
+============================================================
+Basic RAG System - Simple Test
+============================================================
+Using Character Chunker!!
+
+Loading documents from ./docs...
+Found 21 documents
+Adding 21 documents to the system...
+Created 423 chunks from the documents
+Generating Embeddings...
+Documents added to Vector Store!!!
+
+❓ Enter your question: what is leader election?
+
+🔍 Retrieving relevant context for: 'what is leader election?'
+
+🔬 [DEBUG] Full ranking of ALL chunks:
+     1. [leader_election] chunk 2 — score: 0.7300
+     2. [consensus_algorithms] chunk 10 — score: 0.6951
+     3. [leader_election] chunk 5 — score: 0.6906
+     4. [consensus_algorithms] chunk 11 — score: 0.6749
+     5. [leader_election] chunk 0 — score: 0.6674
+     6. [leader_election] chunk 1 — score: 0.6666
+     7. [leader_election] chunk 6 — score: 0.6569
+     8. [leader_election] chunk 10 — score: 0.6463
+     9. [leader_election] chunk 4 — score: 0.6404
+    10. [leader_election] chunk 9 — score: 0.6230
+    
+
+📚 Retrieved 3 relevant chunks:
+
+  1. 📄 Source: [leader_election] chunk 2 | Confidence: 🟢 Very High (score: 0.7300)
+     Solution:
+Leader election algorithms allow nodes in a distributed system to agree on a single leader. The leader coordinates actions like assigning ta...
+
+  2. 📄 Source: [consensus_algorithms] chunk 10 | Confidence: 🟢 High (score: 0.6951)
+     ach term has at most one leader
+- Higher term wins in conflicts
+
+Leader Election:
+1. Follower times out (no heartbeat)
+2. Becomes candidate, increment...
+
+  3. 📄 Source: [leader_election] chunk 5 | Confidence: 🟢 High (score: 0.6906)
+     r and vote for themselves. Other nodes vote for the first candidate in each term. A candidate receiving majority votes becomes the leader.
+
+Bully Algo...
+
+ 💭 Generating Answer...
+
+✅ Answer: "Leader election algorithms allow nodes in a distributed system to agree on a single leader." [Source: leader_election]
+
+
+Attempt #2:
+adding bm25 search with 30% token search and 70% cosine similarity search:
+
+(.venv) santhoshchalla@Santhoshs-Mac-mini MyImplementation % python RAGSystem.py
+============================================================
+Basic RAG System - Simple Test
+============================================================
+Using Character Chunker!!
+
+Loading documents from ./docs...
+Found 21 documents
+Adding 21 documents to the system...
+Created 423 chunks from the documents
+Generating Embeddings...
+Documents added to Vector Store!!!
+
+❓ Enter your question: what is leader election?
+
+🔍 Retrieving relevant context for: 'what is leader election?'
+
+🔬 [DEBUG] Full ranking of ALL chunks:
+     1. [leader_election] chunk 2 — score: 0.8924
+     2. [leader_election] chunk 9 — score: 0.8854
+     3. [consensus_algorithms] chunk 11 — score: 0.8598
+     4. [consensus_algorithms] chunk 10 — score: 0.8468
+     5. [consensus] chunk 15 — score: 0.8303
+     6. [leader_election] chunk 1 — score: 0.8294
+     7. [leader_election] chunk 10 — score: 0.8283
+     8. [consensus] chunk 6 — score: 0.8111
+     9. [consensus] chunk 14 — score: 0.8095
+    10. [consensus_algorithms] chunk 8 — score: 0.7995
+
+📚 Retrieved 3 relevant chunks:
+
+  1. 📄 Source: [leader_election] chunk 2 | Confidence: 🟢 Very High (score: 0.8924)
+     Solution:
+Leader election algorithms allow nodes in a distributed system to agree on a single leader. The leader coordinates actions like assigning ta...
+
+  2. 📄 Source: [leader_election] chunk 9 | Confidence: 🟢 Very High (score: 0.8854)
+     s epochs' transactions are committed before a new leader begins.
+
+Key Properties:
+- Safety: At most one leader per term/epoch
+- Liveness: Eventually, ...
+
+  3. 📄 Source: [consensus_algorithms] chunk 11 | Confidence: 🟢 Very High (score: 0.8598)
+     s term
+3. Votes for self, requests votes from others
+4. Wins with majority, becomes leader
+5. Sends heartbeats to prevent new elections
+
+Log Replicati...
+
+ 💭 Generating Answer...
+
+✅ Answer: Leader election algorithms allow nodes in a distributed system to agree on a single leader. The leader coordinates actions like assigning tasks, managing distributed transactions, or sequencing epochs' transactions are committed before a new leader begins.
+
+Reference: [Source: leader_election]

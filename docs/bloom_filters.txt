@@ -1,0 +1,71 @@
+Bloom Filters
+
+Problem:
+In distributed databases and caches, a common operation is checking membership: "Does this key exist in this dataset?" Reading from disk or querying a remote node just to find out a key is absent is expensive. A fast, space-efficient way to answer "definitely not present" vs "possibly present" is needed.
+
+Core Concept:
+A Bloom filter is a probabilistic data structure that answers set membership queries with:
+- "Definitely not in the set" (no false negatives)
+- "Possibly in the set" (false positives are possible)
+
+It trades a small, controllable false positive rate for extremely compact memory usage and O(1) lookup time.
+
+How It Works:
+
+Structure:
+- A bit array of m bits, all initialized to 0
+- k independent hash functions
+
+Insertion:
+To add an element, hash it with all k functions. Set the bit at each of the k positions to 1.
+
+Lookup:
+To check if an element is in the set, hash it with all k functions. If ALL k bit positions are 1, the element is "possibly present." If ANY bit is 0, the element is "definitely absent."
+
+Deletion:
+Standard Bloom filters do not support deletion. Setting a bit to 0 might affect other elements that hash to the same position. (Counting Bloom filters extend the design to support deletion.)
+
+False Positive Rate:
+A false positive occurs when all k bits happen to be set by other elements. The false positive rate p is approximately:
+  p ≈ (1 - e^(-kn/m))^k
+where n is the number of inserted elements. Increasing m (more bits) reduces false positives.
+
+Parameter Tuning:
+Given n (expected elements) and desired false positive rate p:
+- Optimal bit array size: m = -n * ln(p) / (ln(2))^2
+- Optimal number of hash functions: k = (m/n) * ln(2)
+
+Example:
+For 1 million elements and 1% false positive rate: ~9.6 bits per element (~1.2 MB total).
+Storing the full set would require far more memory.
+
+Use Cases in Distributed Systems:
+
+Database Query Optimization (e.g., Cassandra, HBase, RocksDB):
+Each SSTable (on-disk data file) has a Bloom filter. Before reading from disk, check the filter. If "definitely not present," skip the disk read entirely. This dramatically reduces unnecessary I/O.
+
+Distributed Caching:
+Before going to the origin, check a Bloom filter to see if the key has ever been cached. Reduces cache miss lookups.
+
+Deduplication:
+Check if a URL or event has already been processed (e.g., web crawlers, event deduplication pipelines). False positives mean occasionally skipping an unprocessed item, which may be acceptable.
+
+CDN / Routing:
+Check if content exists on an edge node before fetching from origin.
+
+Bigtable and Spanner:
+Use Bloom filters to avoid disk seeks for rows that don't exist.
+
+Limitations:
+- False positives: cannot guarantee "definitely present"
+- No deletion (in standard form)
+- Size must be chosen upfront based on expected n; resizing is not straightforward
+- Cannot retrieve elements or count occurrences
+
+Variants:
+- Counting Bloom Filter: each bit position replaced with a counter; supports deletion
+- Scalable Bloom Filter: dynamically grows to accommodate more elements
+- Cuckoo Filter: supports deletion, better practical performance than counting Bloom filters
+
+Summary:
+Bloom filters are a practical tool for reducing expensive lookups (disk I/O, network calls) with a small, tunable probability of false positives. They are widely used in storage engines, caches, and distributed databases where avoiding unnecessary work is critical to performance.

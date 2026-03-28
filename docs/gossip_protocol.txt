@@ -1,0 +1,70 @@
+Gossip Protocol
+
+Problem:
+In a large distributed system with hundreds or thousands of nodes, broadcasting information to all nodes using a central coordinator is slow, expensive, and creates a single point of failure. A decentralized, resilient way to disseminate information is needed.
+
+Core Concept:
+Gossip protocols (also called epidemic protocols) spread information through a network the same way a rumor spreads among people. Each node periodically selects one or more random peers and exchanges state. Through repeated rounds, information propagates to the entire cluster exponentially fast.
+
+How It Works:
+
+Basic Push Gossip:
+1. A node learns new information (e.g., a cluster membership change)
+2. Every T seconds, it picks K random peers
+3. It sends (pushes) the new information to those peers
+4. Each peer that receives it does the same in the next round
+5. After O(log N) rounds, all N nodes have the information
+
+Variants:
+- Push: sender pushes data to random peers
+- Pull: node asks random peers for their state and adopts updates
+- Push-Pull: both sides exchange and merge state in one round (most efficient)
+
+Key Properties:
+
+Convergence:
+After O(log N) rounds, with high probability all nodes have received the information. This is exponential spread — similar to how a virus propagates.
+
+Scalability:
+Each node only contacts a fixed number of peers per round (e.g., K=3), regardless of cluster size. Total messages per round = O(N * K), which is linear in N.
+
+Fault Tolerance:
+No single point of failure. Even if many nodes are down, gossip continues through remaining nodes. Information eventually reaches all live nodes.
+
+Eventual Consistency:
+Gossip guarantees eventual delivery, not immediate consistency. Nodes may briefly have stale views of cluster state.
+
+Redundancy:
+Each piece of information is transmitted multiple times, providing natural redundancy. Nodes that missed a round will receive the update later.
+
+Common Use Cases:
+
+Cluster Membership:
+Tracking which nodes are alive or dead. Each node gossips its view of the cluster; dead nodes stop gossiping and are eventually declared failed.
+
+Failure Detection:
+Nodes maintain heartbeat timestamps. If a node hasn't been heard from in time T, it's suspected failed. Suspicion is gossiped; if not refuted, the node is declared dead.
+Used in: Cassandra, DynamoDB, Riak
+
+State Dissemination:
+Spreading configuration changes, routing tables, or replicated data across all nodes.
+Used in: Consul (cluster state), Redis Cluster (topology), CockroachDB
+
+Anti-Entropy:
+Nodes periodically gossip their data checksums (e.g., Merkle trees). Mismatches trigger data synchronization. Used to repair divergence in eventually consistent stores.
+
+Examples in Real Systems:
+- Cassandra: uses gossip for cluster membership, failure detection, and schema propagation
+- DynamoDB: gossip for ring membership
+- Consul: gossip (Serf library) for cluster membership and health
+- Redis Cluster: gossip for node topology and failure detection
+- Riak: gossip for ring state
+
+Limitations:
+- Not suitable for time-sensitive data requiring immediate consistency
+- Bandwidth usage grows with cluster size (though still O(N) per round)
+- Churn (rapid membership changes) can slow convergence
+- Difficult to reason about exactly when a piece of information will arrive
+
+Convergence Time:
+For N nodes, with fanout K, information reaches all nodes in approximately log_K(N) rounds. With K=3 and N=1000 nodes, that's ~7 rounds.

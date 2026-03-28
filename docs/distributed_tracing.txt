@@ -1,0 +1,59 @@
+Distributed Tracing
+
+Problem:
+In a microservices architecture, a single user request may traverse dozens of services. When something goes wrong (latency spike, error), it is hard to pinpoint which service is responsible using only logs or metrics from individual services.
+
+Core Concept:
+Distributed tracing tracks the full journey of a request across service boundaries by propagating a shared context (trace ID) with every call. This allows you to reconstruct the end-to-end execution path as a tree of spans.
+
+Key Terminology:
+
+Trace:
+The complete record of a single request as it flows through the system. Identified by a globally unique trace ID.
+
+Span:
+A named, timed unit of work within a trace. Represents one operation (e.g., an HTTP call, a DB query). Each span has:
+- span ID
+- parent span ID (linking it to the caller)
+- start time and duration
+- status (success/error)
+- tags/attributes (key-value metadata)
+- logs/events (timestamped notes within the span)
+
+Context Propagation:
+The trace ID and span ID are passed between services via headers (e.g., HTTP headers, message queue metadata). This is what "connects" spans into a single trace.
+- W3C Trace Context is the standard header format: traceparent, tracestate
+- B3 headers (from Zipkin) are also widely used
+
+Trace Visualization:
+Traces are typically visualized as a Gantt-style waterfall diagram showing which spans ran sequentially vs. in parallel, and where time was spent.
+
+Sampling:
+Tracing every request is expensive. Sampling strategies:
+- Head-based sampling: decision made at the start of a trace (random %, always-on for errors)
+- Tail-based sampling: decision made after the trace completes (allows sampling on latency/errors)
+- Rate limiting: capture at most N traces per second
+
+Instrumentation:
+- Auto-instrumentation: agents/libraries automatically trace common frameworks (HTTP, gRPC, DB clients)
+- Manual instrumentation: developers add custom spans for business logic
+
+Tools and Standards:
+- OpenTelemetry (OTel): vendor-neutral standard for tracing, metrics, and logs. The current industry standard.
+- Jaeger: open-source tracing backend (originated at Uber)
+- Zipkin: one of the earliest open-source tracing systems
+- AWS X-Ray, Google Cloud Trace, Datadog APM: managed tracing platforms
+
+Relationship to Logs and Metrics:
+The "three pillars of observability":
+- Metrics: aggregated numbers (latency p99, error rate)
+- Logs: discrete events per service
+- Traces: request-scoped, cross-service execution paths
+
+Best practice: correlate all three by embedding trace IDs in logs and linking traces to metrics.
+
+Common Use Cases:
+- Identifying the slowest service in a request chain
+- Debugging intermittent errors in one downstream service
+- Understanding how a code change affects latency across services
+- Visualizing service dependencies (service map)

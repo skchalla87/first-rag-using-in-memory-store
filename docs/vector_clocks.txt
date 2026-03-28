@@ -1,0 +1,85 @@
+Vector Clocks
+
+Problem:
+In a distributed system, nodes do not share a global clock. Two events may happen on different nodes with no causal relationship. We need a way to determine: did event A happen before event B, after it, or are they concurrent (neither caused the other)?
+
+Background:
+Lamport timestamps (logical clocks) establish a total order but cannot distinguish causally unrelated (concurrent) events. Vector clocks extend this to capture causality precisely.
+
+Core Concept:
+Each node maintains a vector of logical counters — one entry per node in the system. This vector captures the causal history of what each node has seen.
+
+Structure:
+For a system with N nodes, each node i maintains a vector:
+  V_i = [c_1, c_2, ..., c_N]
+where c_j represents the number of events node i knows about from node j.
+
+Rules:
+
+1. Local event:
+   Node i increments its own counter: V_i[i] += 1
+
+2. Send message:
+   Node i increments its own counter, then attaches its full vector to the message.
+
+3. Receive message:
+   Node i increments its own counter, then takes the element-wise maximum of its vector and the received vector:
+   V_i[j] = max(V_i[j], V_msg[j]) for all j
+   Then increments V_i[i] += 1
+
+Comparing Vector Clocks:
+
+Event A (with clock V_A) happened before event B (with clock V_B) if and only if:
+  V_A[i] <= V_B[i] for all i, and V_A[j] < V_B[j] for at least one j
+Written as: V_A < V_B (A "happened before" B)
+
+Events A and B are concurrent if:
+  V_A is not <= V_B AND V_B is not <= V_A
+Neither event caused the other.
+
+Example (3 nodes: A, B, C):
+Initial state: A=[0,0,0], B=[0,0,0], C=[0,0,0]
+
+A does a local event:  A=[1,0,0]
+A sends to B:          B receives, B=[1,1,0]
+B sends to C:          C receives, C=[1,1,1]
+A does another event:  A=[2,0,0]
+C sends to A:          A receives, A=[2,1,1]
+
+Now: [2,1,1] at A and the original [2,0,0] at A — A's second event happened-before the state after receiving from C.
+
+Use Cases:
+
+Conflict Detection (Dynamo-style databases):
+When two replicas diverge (concurrent writes), their vector clocks will be concurrent (neither dominates). The system detects this and returns both versions to the client for reconciliation.
+
+Causal Consistency:
+Ensure that reads reflect all writes that causally preceded them. A node only delivers a message when all causally prior messages have also been delivered.
+
+Version Tracking:
+Track which version of data each replica has seen to coordinate replication and detect staleness.
+
+Optimizations and Variants:
+
+Dotted Version Vectors:
+Used in Riak to solve the "sibling explosion" problem where too many concurrent versions accumulate.
+
+Version Vectors (without per-event tracking):
+A simplified form used just for replica versioning (not per-event causality). Each replica maintains one counter per replica it knows about.
+
+Interval Tree Clocks:
+A generalization that handles dynamic membership (nodes joining/leaving) more gracefully.
+
+Limitations:
+- Vector size grows with the number of nodes (O(N) per message)
+- Pruning old entries requires coordination
+- Does not provide a total order — only partial order (which is more accurate)
+
+Comparison to Lamport Clocks:
+- Lamport: A happened-before B implies L(A) < L(B), but not vice versa. Cannot detect concurrency.
+- Vector: A happened-before B if and only if V(A) < V(B). Concurrent events are explicitly identifiable.
+
+Real-World Usage:
+- Amazon DynamoDB / Riak: detect conflicting writes using vector clocks / version vectors
+- CouchDB: uses revision vectors for conflict detection
+- Distributed databases: causal consistency implementations

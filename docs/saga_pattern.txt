@@ -1,0 +1,68 @@
+Saga Pattern
+
+Problem:
+Distributed transactions spanning multiple services are difficult to implement correctly. Two-phase commit (2PC) is blocking, requires all participants to be available, and can leave the system in an inconsistent state if the coordinator fails. A more practical alternative is needed for long-running, multi-step business transactions.
+
+Core Concept:
+A saga is a sequence of local transactions, one per service. Each step publishes an event or sends a command to trigger the next step. If a step fails, compensating transactions are executed in reverse to undo the completed steps.
+
+Key Idea:
+Instead of a distributed ACID transaction, a saga achieves eventual consistency. The system may be temporarily inconsistent between steps, but will converge to a consistent state after all steps (or compensations) complete.
+
+Two Coordination Styles:
+
+1. Choreography
+- No central coordinator
+- Each service listens for events and publishes events in response
+- Steps are triggered by reacting to events from prior steps
+- Pros: decoupled, no single point of failure
+- Cons: hard to visualize the full flow; debugging is difficult; risk of cyclic event chains
+
+Example:
+OrderService creates order → emits OrderCreated
+PaymentService listens → charges card → emits PaymentProcessed
+InventoryService listens → reserves stock → emits StockReserved
+ShippingService listens → schedules shipment
+
+2. Orchestration
+- A central orchestrator (saga coordinator) explicitly tells each participant what to do
+- Orchestrator tracks the state of the saga and issues next commands
+- Pros: flow is explicit and centralized; easier to monitor and debug
+- Cons: orchestrator can become a bottleneck; adds a coordination service
+
+Example:
+OrderOrchestrator calls PaymentService → on success, calls InventoryService → on success, calls ShippingService
+
+Compensating Transactions:
+Each step must have a corresponding compensation that undoes its effect:
+- "Reserve stock" is compensated by "release stock"
+- "Charge payment" is compensated by "refund payment"
+Compensations must be idempotent (safe to execute multiple times).
+
+Failure Handling:
+- Forward recovery: retry the failed step (for transient failures)
+- Backward recovery: run compensations in reverse order to roll back
+
+Saga State:
+The orchestrator (or each service in choreography) must persist the current saga state so it can resume after crashes. This is often stored in a dedicated sagas table.
+
+Isolation Problem:
+Sagas do not provide isolation between concurrent transactions. One saga can see intermediate state written by another saga. Mitigations:
+- Semantic locks: mark records as "pending" while a saga is in progress
+- Commutative updates: design updates so order doesn't matter
+- Pessimistic view: re-read and re-validate state before each step
+
+Comparison to 2PC:
+- 2PC: blocking, synchronous, requires all participants available, provides full ACID isolation
+- Saga: non-blocking, asynchronous, tolerates partial availability, provides eventual consistency only
+
+When to Use Sagas:
+- Long-running business transactions (order fulfillment, booking flows)
+- Transactions spanning multiple microservices with separate databases
+- When 2PC overhead or availability requirements make it impractical
+
+Tools and Frameworks:
+- Temporal: workflow orchestration platform well-suited for sagas
+- Conductor (Netflix): open-source workflow orchestrator
+- AWS Step Functions: managed orchestration on AWS
+- Axon Framework: Java framework supporting sagas via event sourcing

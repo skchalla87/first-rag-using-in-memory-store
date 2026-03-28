@@ -1,0 +1,62 @@
+Service Discovery in Distributed Systems
+
+Problem:
+In a distributed system, services need to find each other dynamically. IP addresses and ports change as instances scale up/down or are replaced. Hardcoding addresses is brittle and unmanageable.
+
+Core Concept:
+Service discovery is the mechanism by which services register their location (host, port, metadata) and other services can look them up by name rather than address.
+
+Two Main Patterns:
+
+1. Client-Side Discovery
+- Client queries a service registry directly
+- Client selects an instance (using load balancing logic)
+- Client makes the request directly to the chosen instance
+- Examples: Netflix Eureka, Consul (client library)
+- Pros: client has full control over load balancing
+- Cons: client must implement discovery logic; tightly coupled to registry
+
+2. Server-Side Discovery
+- Client sends request to a load balancer or router
+- Router queries the registry and forwards to an instance
+- Client knows nothing about the registry
+- Examples: AWS ALB, Kubernetes Services, NGINX
+- Pros: client is simple; discovery logic is centralized
+- Cons: extra network hop; router can become a bottleneck
+
+Service Registry:
+A database of available service instances. Must be:
+- Highly available (critical infrastructure)
+- Consistent enough to avoid stale data
+- Fast to query
+
+Registration Methods:
+- Self-registration: service registers itself on startup, deregisters on shutdown
+- Third-party registration: an orchestrator (e.g., Kubernetes) manages registration
+
+Health Checking:
+Registries use health checks to remove unhealthy instances:
+- TTL-based: service must renew its registration periodically
+- HTTP/TCP probe: registry actively pings the service
+- Agent-based: local agent on each host monitors and reports
+
+Tools:
+- Consul: full-featured service mesh + registry with health checks
+- etcd: key-value store used for discovery (used by Kubernetes internally)
+- ZooKeeper: older, widely used for coordination and discovery
+- Kubernetes DNS: automatic DNS-based discovery within a cluster
+- AWS Cloud Map: managed service discovery for AWS workloads
+
+DNS-Based Discovery:
+Services are registered as DNS records. Clients resolve the service name to get IPs.
+- Simple, language-agnostic
+- TTL caching can cause stale lookups
+- Does not natively handle port or metadata
+
+Failure Scenarios:
+- Registry goes down: clients may cache stale entries or fail to find new instances
+- Stale registrations: instances that crashed without deregistering cause failed requests
+- Network partition: split-brain where some clients see different registry state
+
+Relationship to Load Balancing:
+Service discovery and load balancing are complementary. Discovery provides the list of available instances; load balancing decides which one to use (round-robin, least connections, consistent hashing, etc.).

@@ -49,8 +49,69 @@ Initially, the system *appeared* to work perfectly and answered questions like "
 
 ---
 
-### Key Observations & Next Steps
+### Key Observations (Session 1)
 - Retrieval quality is heavily dependent on **chunk coherence** (paragraphs vs. raw characters).
 - LLMs are eager to please and will "cheat" if the system prompt isn't strictly gated.
 - **Parent Document Retrieval** elegantly solves the problem of dense similarity clustering in single-domain knowledge bases.
-- Next improvement: Implement `pgvector` for persistent, scalable storage instead of in-memory numpy arrays.
+
+---
+
+### Test Session: 2026-03-28
+
+#### Improvement 1: Hybrid Retrieval — BM25 + Cosine Similarity
+
+**Problem:** Pure semantic (cosine) search compresses query and chunk into independent vectors before comparing them. It can miss chunks that use the exact same terminology as the query, and can over-rank chunks that are semantically related but don't directly answer the question.
+
+**Fix:** Added BM25 keyword search blended with cosine similarity at a **70% semantic / 30% keyword** split.
+
+- BM25 index is built over all chunks at index time inside `InMemoryVectorStore`
+- At query time, both scores are normalized to [0,1] and combined: `0.7 * cosine_norm + 0.3 * bm25_norm`
+- The `query_text` parameter is passed through `RAGSystem.retrieve()` into `vector_store.search()`
+
+**Observed Result:** Scores increased (e.g. 0.72 → 0.89 for top chunk on "what is leader election?") and the retrieved set shifted — chunks with direct keyword matches that were previously ranked lower surfaced into top-k.
+
+**Learning:** BM25 and semantic search cover each other's blind spots. Semantic handles paraphrasing; BM25 handles exact terminology. Neither alone is optimal for mixed natural-language + technical queries.
+
+---
+
+#### Improvement 2: Cross-Encoder Re-ranking
+
+**Problem:** Both cosine and BM25 score query and chunk **independently** — the model never sees both together. A chunk can score highly because it shares vocabulary or semantic space with the query without actually answering it.
+
+**Fix:** After hybrid retrieval, a **cross-encoder** re-scores the top-20 candidates by reading query and chunk together as a single input, then reorders before passing top-k to the LLM.
+
+- Model used: `cross-encoder/ms-marco-MiniLM-L-6-v2` (lightweight, runs locally)
+- Pipeline: hybrid search → top-20 candidates → cross-encoder re-rank → top-3 to LLM
+- Cross-encoder scores are raw logits (not [0,1]), used only for ranking not thresholding
+
+**Learning:** Bi-encoders are fast but compare summaries of two texts. Cross-encoders are slower but understand the relationship between query and chunk — critical for distinguishing "related to topic" from "answers the question". Use bi-encoder for cheap candidate retrieval, cross-encoder for precise re-scoring of the shortlist.
+
+**Why not cross-encode the full corpus?** Cross-encoders run inference on every (query, chunk) pair at query time — O(N) model forward passes. On thousands of chunks this is too slow. Restricting it to top-20 candidates keeps latency acceptable.
+
+---
+
+#### Improvement 3: Chunk Size Tuning
+
+- Reduced default chunk size from `500 → 250` characters, overlap `30 → 50`
+- Smaller chunks are more focused — less noise around the relevant sentence
+- Higher overlap reduces the chance of a key sentence being split across chunk boundaries
+
+---
+
+#### Expanded Knowledge Base
+
+Added 8 new distributed systems documents to `docs/`:
+`service_discovery`, `distributed_tracing`, `message_queues_and_event_streaming`, `saga_pattern`, `rate_limiting_and_backpressure`, `gossip_protocol`, `bloom_filters`, `vector_clocks`
+
+Total: 13 → 21 documents.
+
+---
+
+### Key Observations (Session 2)
+- LLM output is non-deterministic — the same retrieval can produce different answer quality across runs due to temperature sampling. Use `temperature=0` when isolating whether a code change actually improved retrieval.
+- Debug output and actual retrieval must use identical search parameters — a mismatch (e.g. missing `query_text` in the debug call) silently shows stale scores while retrieval is already improved.
+- BM25 must be rebuilt over the **full** corpus on every `add_documents` call — IDF values depend on the entire document set.
+- Re-ranking adds a model load cost at startup and inference cost per query, but only over the small candidate set — acceptable tradeoff for significantly better top-k precision.
+
+### Next Steps
+- Replace in-memory numpy store with a **persistent vector database** to avoid re-embedding on every run.

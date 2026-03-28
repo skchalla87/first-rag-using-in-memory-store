@@ -1,0 +1,76 @@
+Message Queues and Event Streaming
+
+Problem:
+Services in a distributed system need to communicate without being tightly coupled. Synchronous calls (HTTP/gRPC) require both sides to be available at the same time, creating brittleness and cascading failures. Async messaging decouples producers from consumers.
+
+Core Concept:
+A message broker sits between services. Producers send messages to the broker; consumers read from it at their own pace. Neither side needs to know about the other directly.
+
+Message Queue vs Event Stream:
+
+Message Queue:
+- Each message is consumed by exactly one consumer (point-to-point)
+- Message is deleted after acknowledgment
+- Focused on task distribution (work queue pattern)
+- Examples: RabbitMQ, Amazon SQS, ActiveMQ
+
+Event Stream:
+- Messages (events) are retained in an ordered log
+- Multiple consumers can independently read the same events
+- Consumers track their own position (offset) in the log
+- Focused on event sourcing, replay, and fan-out
+- Examples: Apache Kafka, Amazon Kinesis, Apache Pulsar
+
+Key Concepts:
+
+Producer / Publisher:
+The service that writes messages to the broker.
+
+Consumer / Subscriber:
+The service that reads and processes messages.
+
+Topic / Queue:
+The named channel through which messages flow.
+
+Consumer Group (Kafka):
+A set of consumers that together consume a topic. Each partition is assigned to one consumer in the group, enabling parallel processing while maintaining order per partition.
+
+Acknowledgment (Ack):
+Consumer signals to the broker that a message was processed successfully. If no ack arrives, the broker redelivers the message.
+
+Dead Letter Queue (DLQ):
+Messages that fail repeatedly are moved to a DLQ for inspection and manual handling.
+
+Delivery Guarantees:
+- At-most-once: message may be lost, never redelivered (low latency, acceptable for metrics)
+- At-least-once: message is redelivered on failure; duplicates are possible (most common)
+- Exactly-once: no loss, no duplicates (hard to achieve; Kafka supports it with idempotent producers + transactions)
+
+Ordering:
+- Global ordering across all partitions/queues is expensive and limits throughput
+- Partition-level ordering is practical: messages with the same key go to the same partition, preserving order per key
+
+Backpressure:
+When consumers are slower than producers, the queue grows. Strategies:
+- Let the queue absorb the burst (bounded by retention/disk)
+- Scale out consumers horizontally
+- Apply backpressure upstream (slow down producers)
+- Drop messages with a TTL (time-to-live)
+
+Push vs Pull:
+- Push: broker pushes messages to consumers (RabbitMQ default). Lower latency but risk of overwhelming slow consumers.
+- Pull: consumers poll for messages (Kafka default). Consumers control their rate; easier to implement backpressure.
+
+Common Patterns:
+- Work Queue: distribute tasks across multiple workers (each task done once)
+- Pub/Sub: broadcast events to all interested subscribers
+- Event Sourcing: store all state changes as an immutable event log
+- CQRS: separate read and write models, connected via events
+- Saga via events: coordinate long-running workflows by emitting/consuming events
+
+Tools:
+- Apache Kafka: high-throughput, durable, log-based streaming platform
+- RabbitMQ: flexible routing, multiple exchange types, good for task queues
+- Amazon SQS/SNS: managed queuing and pub/sub on AWS
+- Amazon Kinesis: managed event streaming on AWS
+- Apache Pulsar: Kafka alternative with built-in multi-tenancy and geo-replication

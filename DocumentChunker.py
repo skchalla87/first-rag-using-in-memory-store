@@ -9,7 +9,7 @@ class DocumentChunker:
     Con: Cuts mid-sentence/word, losing semantic coherence
     """
     
-    def __init__(self, chunk_size: int = 500, overlap: int = 30):
+    def __init__(self, chunk_size: int = 250, overlap: int = 50):
         """
         Args:
             chunk_size: Number of characters per chunk

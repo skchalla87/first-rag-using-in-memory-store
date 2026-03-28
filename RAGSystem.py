@@ -8,7 +8,7 @@ from typing import List, Tuple, Dict
 from DocumentChunker import DocumentChunker, ParagraphChunker
 from EmbeddingGenerator import EmbeddingGenerator
 from InMemoryVectorStore import InMemoryVectorStore
-
+from sentence_transformers import CrossEncoder
 
 class RAGSystem:
     """Main RAG system that combines retrieval and generation"""
@@ -16,7 +16,7 @@ class RAGSystem:
     def __init__(self,
                  embedding_model: str = 'nomic-embed-text',
                  llm_model: str = "llama3.1",
-                 chunk_size: int = 500,
+                 chunk_size: int = 200,
                  overlap: int = 50,
                  chunker_type: str = "paragraph",   # "character" or "paragraph"
                  parent_retrieval: bool = True       # fetch ALL chunks from matched docs
@@ -37,7 +37,11 @@ class RAGSystem:
         if chunker_type == "paragraph":
             self.chunker = ParagraphChunker()
         else:
+            print("Using Character Chunker!!")
             self.chunker = DocumentChunker(chunk_size, overlap)
+        # 1. Initialize the Cross-Encoder model (e.g., a lightweight ms-marco model)
+        print("Loading Reranker Model...")
+        self.reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
         
         self.chunker_type = chunker_type
         self.parent_retrieval = parent_retrieval
@@ -119,19 +123,47 @@ class RAGSystem:
         # Generate query embedding
         query_embedding = self.embedding_generator.generate_embedding(query)
         
+        # retrieve top 20 candidates from vector store
+        initial_pool_size = 20
+        candidate_docs =  self.vector_store.search(query_embedding, top_k=initial_pool_size, query_text=query)
+        
+        # If no docs returned, just return empty
+        if not candidate_docs:
+            return []
+        
+        # Rerank the docs
+        
+        # Prepare pairs of (Query, Chunk) for the Cross-Encoder
+        pairs = [[query, doc[0]] for doc in candidate_docs]
+        
+        # predict the exact relevance scores
+        rerank_scores = self.reranker.predict(pairs)
+        
+        # Combine the original docs with their new reranked scores
+        reranked_results = []
+        for idx, score in enumerate(rerank_scores):
+            chunk_text = candidate_docs[idx][0]
+            metadata = candidate_docs[idx][2]
+            reranked_results.append((chunk_text, float(score), metadata))
+        
+         # Sort by the new reranker score (descending)
+        reranked_results.sort(key=lambda x: x[1], reverse=True)
+                
         # Get ALL results for debugging
-        all_results = self.vector_store.search(query_embedding, top_k=len(self.vector_store.documents))
+        all_results = self.vector_store.search(query_embedding, top_k=15, query_text=query)
         
         if debug:
             print("\n🔬 [DEBUG] Full ranking of ALL chunks:")
-            for rank, (doc, score, meta) in enumerate(all_results, 1):
+            for rank, (doc, score, meta) in enumerate(reranked_results, 1):
+                
                 source = meta.get("source", "unknown")
                 chunk_idx = meta.get("chunk_index", "?")
                 print(f"   {rank:>3}. [{source}] chunk {chunk_idx} — score: {score:.4f}")
         
-        return self.vector_store.search(query_embedding, top_k=top_k, parent_retrieval=self.parent_retrieval)
+        # 4. Return the final top_k documents to the LLM
+        return reranked_results[:top_k]
     
-    def query(self, question: str, top_k : int = 5, verbose : bool = True) -> str:
+    def query(self, question: str, top_k : int = 3, verbose : bool = True) -> str:
         """
         Query the RAG system with a question
         
@@ -193,7 +225,7 @@ if __name__ == "__main__":
     # Choose chunking strategy:
     #   "paragraph" - splits on blank lines, keeps paragraphs intact (recommended)
     #   "character" - fixed-size windows with overlap (simpler, cuts mid-word)
-    rag = RAGSystem(chunker_type="paragraph")
+    rag = RAGSystem(chunker_type="character", parent_retrieval=False, embedding_model='mxbai-embed-large')
     
     rag.load_documents('./docs')
     

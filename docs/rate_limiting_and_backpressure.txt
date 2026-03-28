@@ -1,0 +1,108 @@
+Rate Limiting and Backpressure
+
+Problem:
+Distributed systems must protect themselves from overload — whether from misbehaving clients, traffic spikes, or cascading internal load. Without controls, a surge in requests can exhaust resources and cause system-wide failures.
+
+---
+RATE LIMITING
+---
+
+Definition:
+Rate limiting restricts how many requests a client (or service) can make in a given time window. Excess requests are rejected (or delayed) before they consume resources.
+
+Goals:
+- Protect services from overload
+- Ensure fair usage across clients
+- Prevent abuse and denial-of-service attacks
+- Enforce SLA/API quota policies
+
+Common Algorithms:
+
+1. Token Bucket
+- A bucket holds up to N tokens, refilled at a fixed rate
+- Each request consumes one token; if empty, request is rejected/delayed
+- Allows short bursts up to bucket capacity
+- Most commonly used in practice (e.g., AWS, Stripe)
+
+2. Leaky Bucket
+- Requests enter a queue (the "bucket") processed at a fixed output rate
+- Excess requests overflow and are dropped
+- Smooths out bursty traffic to a constant rate
+- Used in traffic shaping (network QoS)
+
+3. Fixed Window Counter
+- Count requests per fixed time window (e.g., per minute)
+- Simple but vulnerable to boundary bursts (2x rate at window edge)
+
+4. Sliding Window Log
+- Track timestamps of all recent requests
+- Accurate but memory-intensive for high-traffic clients
+
+5. Sliding Window Counter
+- Hybrid: weighted combination of current and previous window counts
+- Good accuracy with low memory overhead
+
+Where to Apply Rate Limits:
+- API Gateway: limit by client IP, API key, or user ID
+- Per-service: limit inbound calls from specific upstream services
+- Per resource: limit writes to a specific database record or partition
+
+Distributed Rate Limiting:
+When multiple instances of a service share a rate limit, counters must be shared:
+- Use Redis (INCR + EXPIRE) or similar low-latency stores
+- Challenge: atomic operations needed to avoid race conditions
+- Redis Lua scripts or atomic commands (INCR, SET with NX/EX) are common solutions
+
+Headers:
+Standard headers to communicate limits to clients:
+- X-RateLimit-Limit: max requests allowed
+- X-RateLimit-Remaining: requests left in current window
+- X-RateLimit-Reset: timestamp when limit resets
+- Retry-After: how long to wait before retrying (on 429 response)
+
+---
+BACKPRESSURE
+---
+
+Definition:
+Backpressure is a flow control mechanism where a downstream component signals to upstream components to slow down when it cannot keep up with the incoming rate.
+
+Why It Matters:
+Without backpressure, a fast producer will overwhelm a slow consumer, causing:
+- Memory exhaustion from unbounded queues
+- Increased latency as queues grow
+- Cascading failures as buffers spill over
+
+Backpressure Strategies:
+
+1. Blocking / Synchronous
+- Producer blocks until the consumer is ready
+- Simple but reduces throughput and can cause deadlocks
+
+2. Bounded Queues with Rejection
+- Queue has a fixed capacity; new items are dropped or rejected when full
+- Producer must handle rejection (retry, drop, alert)
+
+3. Explicit Signaling (Reactive Streams)
+- Consumer explicitly requests N items from the producer
+- Producer only sends what was requested
+- Foundation of the Reactive Streams spec (RxJava, Project Reactor, Akka Streams)
+
+4. Circuit Breaker
+- Detects sustained overload and "opens" to stop sending requests
+- Gives the downstream service time to recover
+
+5. Load Shedding
+- Service intentionally drops low-priority requests under high load
+- Preserves capacity for critical traffic
+
+Relationship Between Rate Limiting and Backpressure:
+- Rate limiting is applied at the edge/entry point, protecting a service from external load
+- Backpressure is applied internally between components in a processing pipeline
+- Both prevent overload but at different layers
+
+Practical Patterns:
+- Use rate limiting at API gateways to protect public endpoints
+- Use backpressure in internal streaming pipelines (Kafka consumers, reactive pipelines)
+- Use circuit breakers between microservices to handle downstream slowness
+- Combine all three for defense in depth

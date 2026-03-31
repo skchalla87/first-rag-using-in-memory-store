@@ -20,7 +20,7 @@ class InMemoryVectorStore:
             metadata: Optional list of dicts with info like {"source": "cap_theorem", "chunk_index": 0}
         """
         self.documents.extend(documents)
-        self.metadata.extend(metadata if metadata else [{} for _ in documents])
+        self.metadata.extend(metadata if metadata else [{} for _ in self.documents])
         
         # build BM25 index
         tokenized = [doc.lower().split() for doc in documents]

@@ -1,0 +1,43 @@
+Load Balancing in Distributed Systems
+
+Load balancing distributes incoming network traffic across multiple servers to ensure no single server bears too much load. It improves availability, responsiveness, and throughput.
+
+Types of Load Balancers
+
+Layer 4 (Transport Layer) load balancers operate at the TCP/UDP level. They route traffic based on IP address and port without inspecting packet contents. They are fast and efficient but lack application-level awareness.
+
+Layer 7 (Application Layer) load balancers inspect HTTP headers, cookies, and request content. They can route based on URL path, host header, or session data. More flexible but adds latency overhead.
+
+Load Balancing Algorithms
+
+Round Robin assigns each request to the next server in sequence. Simple and even distribution, but ignores server capacity differences.
+
+Weighted Round Robin assigns weights to servers. A server with weight 3 receives three times as many requests as one with weight 1. Useful when servers have different capacities.
+
+Least Connections routes each new request to the server with the fewest active connections. Better than round robin for long-lived connections like WebSockets or database queries.
+
+Least Response Time combines active connections and average response time. Sends requests to the server that is both least loaded and fastest to respond.
+
+IP Hash uses a hash of the client's IP address to determine which server handles the request. Ensures the same client always reaches the same server (sticky sessions without cookies).
+
+Random with Two Choices (Power of Two) picks two servers at random and routes to the one with fewer connections. Achieves near-optimal load distribution with very low overhead.
+
+Session Persistence (Sticky Sessions)
+
+Some applications require a client to always reach the same server — for example, when session state is stored in-memory. Load balancers can achieve this via cookie insertion, URL rewriting, or IP affinity. Sticky sessions reduce horizontal scalability and complicate failover.
+
+Health Checks
+
+Load balancers probe backends using passive checks (monitoring live traffic errors) or active checks (sending periodic synthetic requests). Unhealthy backends are removed from rotation automatically and re-added after recovery.
+
+DNS-Based Load Balancing
+
+DNS returns multiple A records for a single hostname. Clients pick one, distributing load globally. TTL controls how long clients cache the result. DNS load balancing is coarse-grained and slow to react to failures due to caching.
+
+Anycast
+
+Multiple servers share the same IP address via BGP routing. The network routes each client to the topologically nearest server. Used by CDNs and DNS resolvers (e.g., Cloudflare's 1.1.1.1).
+
+Trade-offs
+
+A load balancer itself can become a single point of failure. High-availability setups run active-passive or active-active pairs with virtual IP failover (VRRP/HSRP). Adding a load balancer introduces a network hop and requires careful capacity planning.

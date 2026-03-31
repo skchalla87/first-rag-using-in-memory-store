@@ -1,0 +1,39 @@
+Backpressure in Distributed Systems
+
+Backpressure is a mechanism by which a downstream component signals to an upstream component to slow down production when it cannot keep up with the rate of incoming data. Without backpressure, fast producers overwhelm slow consumers, causing memory exhaustion, increased latency, and cascading failures.
+
+The Problem
+
+In a pipeline where component A produces data consumed by component B: if A produces 10,000 items/second and B can only process 6,000 items/second, the gap must go somewhere. Without backpressure it accumulates in unbounded queues, eventually causing out-of-memory errors or extreme latency.
+
+Backpressure Mechanisms
+
+Blocking: The producer blocks when the queue is full. Simple and effective in synchronous, single-process systems. Inappropriate when blocking the producer would stall unrelated work.
+
+Bounded queues with rejection: Fixed-size queues return an error or drop messages when full. The producer must handle the rejection — retry with backoff, drop, or route elsewhere.
+
+Rate limiting at the source: The consumer signals its processing capacity. The producer throttles output to match. Used in streaming protocols like TCP (receive window) and HTTP/2 (flow control).
+
+Credit-based flow control: The consumer grants credits to the producer. Each credit allows one message. The producer can only send as many messages as it has credits. The consumer replenishes credits as it processes. Used in AMQP, Reactive Streams, and gRPC.
+
+Pull-based consumption: Instead of the producer pushing data, the consumer pulls at its own pace. Kafka consumers pull messages; the broker does not push. Consumers naturally apply backpressure by not pulling faster than they can process.
+
+Reactive Streams
+
+The Reactive Streams specification (Java) formalizes backpressure for asynchronous stream processing. Publishers only emit items when Subscribers request them via request(n). This propagates backpressure through an entire asynchronous pipeline without blocking threads. Implementations include Project Reactor (Spring WebFlux), RxJava, and Akka Streams.
+
+TCP Flow Control
+
+TCP's sliding window is a classic backpressure mechanism. The receiver advertises its available buffer space in the receive window field. The sender cannot transmit more bytes than the window allows. When the receiver's buffer fills, the window shrinks to zero and the sender stops. This prevents any single TCP connection from overwhelming a receiver.
+
+Shedding Load
+
+When backpressure cannot propagate upstream (e.g., at a public API boundary where you cannot slow down clients), load shedding is the alternative. The system deliberately drops or rejects requests above a capacity threshold, returning 429 (Too Many Requests) or 503 (Service Unavailable). Shedding a fraction of requests is preferable to degrading for all requests.
+
+Queue Depth as a Signal
+
+Queue depth is a reliable indicator of whether a system is keeping up. A growing queue means consumption is slower than production. Monitoring queue depth (and its rate of change) allows systems to trigger autoscaling, shed load, or alert operators before the queue grows unbounded.
+
+Backpressure vs Rate Limiting
+
+Rate limiting caps how fast a producer can send regardless of consumer state (supply-side control). Backpressure caps how fast a producer can send based on consumer capacity (demand-side control). They are complementary: rate limiting protects against abusive producers; backpressure protects against overwhelmed consumers.

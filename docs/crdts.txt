@@ -1,0 +1,39 @@
+CRDTs - Conflict-Free Replicated Data Types
+
+CRDTs are data structures that can be replicated across multiple nodes where each node can update independently, and replicas can always be merged without conflict. They guarantee strong eventual consistency: all replicas that have received the same updates will converge to the same state.
+
+Why CRDTs
+
+In distributed systems allowing concurrent updates to shared state leads to conflicts. Traditional approaches resolve conflicts by electing a leader, using distributed locks, or requiring coordination. CRDTs eliminate coordination by designing data structures where all concurrent updates are mathematically compatible.
+
+Two Families
+
+State-based CRDTs (CvRDTs) transmit their full state to peers. Merging is done using a join operation that must be commutative, associative, and idempotent. Any replica can send its state to any other at any time and the result is correct.
+
+Operation-based CRDTs (CmRDTs) transmit operations rather than state. Operations must be commutative (order of delivery does not matter). Requires a reliable broadcast channel that delivers each operation exactly once.
+
+Common CRDT Types
+
+G-Counter (Grow-only Counter): Each node maintains its own counter slot. Increment only affects the local slot. The global value is the sum of all slots. Merge takes the max of each slot.
+
+PN-Counter: Two G-Counters, one for increments and one for decrements. The value is the difference. Supports both increment and decrement while remaining conflict-free.
+
+G-Set (Grow-only Set): Elements can only be added, never removed. Merge is set union. Simple and idempotent.
+
+2P-Set (Two-Phase Set): Two G-Sets, one for additions and one for removals. An element is in the set if it is in the add-set and not in the remove-set. Once removed an element can never be re-added.
+
+LWW-Element-Set (Last-Write-Wins Set): Each element carries a timestamp. Add and remove operations include timestamps. The latest timestamp wins. Requires synchronized clocks or logical timestamps.
+
+OR-Set (Observed-Remove Set): Solves the add-after-remove problem using unique tags. Each add generates a unique tag. Remove tracks specific tags. An element is present if any of its tags survive. Concurrent add and remove of the same element resolves in favor of add.
+
+MV-Register (Multi-Value Register): Stores multiple concurrent values using vector clocks. Concurrent writes produce multiple values, all of which are retained. The application resolves conflicts (like Amazon shopping cart showing both versions).
+
+RGA (Replicated Growable Array): A sequence CRDT where each element has a unique identifier. Insertions are ordered deterministically by identifier. Enables collaborative text editing without coordination.
+
+Real-World Usage
+
+Riak used CRDTs for counters, sets, and maps. Redis cluster replication has CRDT-inspired conflict resolution. Collaborative editing tools (like Google Docs' operational transform, or Automerge which uses CRDTs) rely on these principles. Apple Notes sync uses CRDTs.
+
+Limitations
+
+CRDTs can consume more memory (tombstones for deleted elements). Not all data models map naturally to CRDT semantics. Complex invariants (e.g., a bank balance that must not go negative) cannot be expressed as pure CRDTs and still require coordination.

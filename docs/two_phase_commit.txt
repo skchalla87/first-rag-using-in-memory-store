@@ -1,0 +1,52 @@
+Two-Phase Commit (2PC)
+
+Two-phase commit is a distributed atomic commitment protocol that ensures all participants in a distributed transaction either all commit or all abort. It is the foundation of distributed ACID transactions across heterogeneous systems.
+
+The Problem
+
+In a distributed transaction spanning multiple databases or services, each participant can locally commit. But if one participant crashes after others have committed, the system is left in an inconsistent state — some nodes applied the change, others did not.
+
+Protocol Overview
+
+2PC uses a coordinator (transaction manager) and participants (resource managers).
+
+Phase 1 — Prepare (Voting):
+1. The coordinator sends a PREPARE message to all participants.
+2. Each participant checks if it can commit: validates constraints, acquires locks, writes changes to a durable redo log.
+3. Each participant votes YES (can commit) or NO (must abort) and persists its vote.
+4. A YES vote is a durable promise: the participant can no longer unilaterally abort.
+
+Phase 2 — Commit or Abort:
+1. If all votes are YES, the coordinator writes COMMIT to its log and sends COMMIT to all participants.
+2. If any vote is NO or a timeout occurs, the coordinator writes ABORT and sends ABORT to all participants.
+3. Participants apply or undo the transaction and release locks.
+4. Participants acknowledge to the coordinator.
+5. The coordinator writes the transaction as complete.
+
+Blocking Problem
+
+2PC is a blocking protocol. If the coordinator crashes after Phase 1 but before sending Phase 2, participants that voted YES are stuck. They hold locks and cannot decide unilaterally — they must wait for the coordinator to recover. This can block indefinitely.
+
+Coordinator Recovery
+
+The coordinator writes its decision to a durable log before sending Phase 2 messages. On recovery, it reads the log and re-sends the decision to any participants that have not acknowledged. This ensures eventual resolution but requires coordinator recovery.
+
+Three-Phase Commit (3PC)
+
+3PC adds a pre-commit phase to eliminate the blocking problem under certain failure assumptions. It allows participants to make a decision even if the coordinator fails, by adding a state from which all nodes can infer the final decision. However, 3PC is not safe under network partitions — it can lead to split-brain. It is rarely used in practice.
+
+2PC and Locks
+
+During Phase 1, participants hold locks on the affected rows. These locks are held until Phase 2 completes. Long-running distributed transactions hold locks for a long time, harming throughput. This is why 2PC is unsuitable for high-concurrency systems.
+
+Alternatives
+
+SAGA: Breaks the transaction into a sequence of local transactions with compensating actions for rollback. No locking. Eventually consistent. Suitable for long-running business processes.
+
+Optimistic concurrency: Each participant validates and commits locally. Conflicts are detected after the fact and resolved by retrying or aborting.
+
+Consensus-based transaction managers (e.g., Google Spanner, CockroachDB): Use Paxos or Raft to make the coordinator fault-tolerant, eliminating the single-point-of-failure problem.
+
+XA Transactions
+
+XA is a standard interface (X/Open XA) for 2PC between a transaction manager and resource managers (databases, message brokers). Supported by most relational databases (PostgreSQL, MySQL, Oracle). Java EE / Jakarta EE application servers use XA for distributed transactions across JMS and JDBC resources.

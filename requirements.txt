@@ -1,2 +1,6 @@
 ollama
 numpy
+psycopg2-binary
+pgvector
+rank_bm25
+sentence-transformers

@@ -2,13 +2,12 @@
 RAG System - Main class that integrates chunking, embedding, and retrieval
 """
 
-from pathlib import Path
 import ollama
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 
 from DocumentChunker import DocumentChunker, ParagraphChunker
 from EmbeddingGenerator import EmbeddingGenerator
-from InMemoryVectorStore import InMemoryVectorStore
+from PgVectorStore import PgVectorStore
 from sentence_transformers import CrossEncoder
 
 
@@ -23,6 +22,7 @@ class RAGSystem:
         overlap: int = 50,
         chunker_type: str = "paragraph",  # "character" or "paragraph"
         parent_retrieval: bool = True,  # fetch ALL chunks from matched docs
+        connection_string: str = "postgresql://raguser:ragpass@localhost:5432/ragdb"
     ):
         """
         Args:
@@ -49,56 +49,9 @@ class RAGSystem:
         self.chunker_type = chunker_type
         self.parent_retrieval = parent_retrieval
         self.embedding_generator = EmbeddingGenerator(embedding_model)
-        self.vector_store = InMemoryVectorStore()
+        self.vector_store = PgVectorStore(connection_string)
         self.llm_model = llm_model
 
-    def load_documents(self, data_dir: str):
-        """
-        Load all .txt files from directory and index them
-
-        Args:
-            data_dir: Path to directory containing .txt files
-        """
-        print(f"\nLoading documents from {data_dir}...")
-
-        # Read all .txt files
-        documents = {}
-        data_path = Path(data_dir)
-
-        for file_path in data_path.glob("*.txt"):
-            with open(file_path, "r", encoding="utf-8") as f:
-                documents[file_path.stem] = f.read()
-
-        print(f"Found {len(documents)} documents")
-        self.add_documents(documents)
-
-    def add_documents(self, documents: Dict[str, str]):
-        """Add Documents to RAG system
-
-        Args:
-            documents: Dict of {doc_name: content}
-        """
-
-        print(f"Adding {len(documents)} documents to the system...")
-
-        # chunk all documents, tracking source name and chunk index
-        all_chunks = []
-        all_metadata = []
-        for doc_name, doc_content in documents.items():
-            chunks = self.chunker.chunk_text(doc_content)
-            for chunk_index, chunk in enumerate(chunks):
-                all_chunks.append(chunk)
-                all_metadata.append({"source": doc_name, "chunk_index": chunk_index})
-
-        print(f"Created {len(all_chunks)} chunks from the documents")
-
-        # Generate Embeddings for all the chunks
-        print("Generating Embeddings...")
-        embeddings = self.embedding_generator.generate_embeddings(all_chunks)
-
-        # Add Embeddings to Vector Store
-        self.vector_store.add_documents(all_chunks, embeddings, all_metadata)
-        print("Documents added to Vector Store!!!")
 
     @staticmethod
     def _confidence_level(score: float) -> str:
@@ -131,7 +84,7 @@ class RAGSystem:
         # retrieve top 20 candidates from vector store
         initial_pool_size = 20
         candidate_docs = self.vector_store.search(
-            query_embedding, top_k=initial_pool_size, query_text=query
+            query_embedding, query_text=query, top_k=initial_pool_size
         )
 
         # If no docs returned, just return empty
@@ -141,7 +94,7 @@ class RAGSystem:
         # Rerank the docs
 
         # Prepare pairs of (Query, Chunk) for the Cross-Encoder
-        pairs = [[query, doc[0]] for doc in candidate_docs]
+        pairs = [[query, doc["content"]] for doc in candidate_docs]
 
         # predict the exact relevance scores
         rerank_scores = self.reranker.predict(pairs)
@@ -149,8 +102,11 @@ class RAGSystem:
         # Combine the original docs with their new reranked scores
         reranked_results = []
         for idx, score in enumerate(rerank_scores):
-            chunk_text = candidate_docs[idx][0]
-            metadata = candidate_docs[idx][2]
+            chunk_text = candidate_docs[idx]["content"]
+            metadata = {
+                "source": candidate_docs[idx]["source"],
+                "chunk_index": candidate_docs[idx]["chunk_index"],
+            }
             reranked_results.append((chunk_text, float(score), metadata))
 
         # Sort by the new reranker score (descending)
@@ -170,11 +126,15 @@ class RAGSystem:
         top_results = reranked_results[:top_k]
         if self.parent_retrieval:
             top_sources = {meta.get("source") for _, _, meta in top_results}
-            top_results = [
-                item
-                for item in reranked_results
-                if item[2].get("source") in top_sources
-            ]
+            expanded = []
+            for source in top_sources:
+                for row in self.vector_store.get_chunks_by_source(source):
+                    expanded.append((
+                        row["content"],
+                        float("-inf"),
+                        {"source": row["source"], "chunk_index": row["chunk_index"]},
+                    ))
+            top_results = expanded
 
         return top_results
 
@@ -237,6 +197,9 @@ Answer:"""
         response = ollama.generate(model=self.llm_model, prompt=prompt)
         return response["response"]
 
+    def close(self):
+        self.vector_store.close()
+
 
 if __name__ == "__main__":
     print("=" * 60)
@@ -247,15 +210,13 @@ if __name__ == "__main__":
     #   "paragraph" - splits on blank lines, keeps paragraphs intact (recommended)
     #   "character" - fixed-size windows with overlap (simpler, cuts mid-word)
     rag = RAGSystem(
-        chunker_type="character",
         parent_retrieval=False,
         embedding_model="mxbai-embed-large",
     )
-
-    rag.load_documents("./docs")
 
     # Get query from user
     question = input("\n❓ Enter your question: ")
     answer = rag.query(question)
     print(f"\n✅ Answer: {answer}")
     print("\n" + "=" * 60)
+    rag.close()

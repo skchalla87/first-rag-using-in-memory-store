@@ -1,0 +1,51 @@
+Distributed Caching
+
+Distributed caching stores frequently accessed data in fast in-memory storage shared across multiple application instances. It reduces latency, lowers database load, and improves throughput at scale.
+
+Cache Topologies
+
+Cache-aside (Lazy Loading): The application checks the cache first. On a miss, it loads from the database, stores the result in the cache, and returns it. The cache only contains data that has been requested. Risk: cache stampede on cold start or expiry of popular keys.
+
+Write-through: Every write goes to both cache and database synchronously before returning to the client. Cache is always consistent with the database but writes are slower.
+
+Write-behind (Write-back): Writes go to cache immediately and are asynchronously flushed to the database. Very fast writes but risk of data loss if the cache node fails before flushing.
+
+Read-through: The cache itself loads from the database on a miss, transparently. The application always reads from cache; the cache library manages fetching from the source.
+
+Eviction Policies
+
+LRU (Least Recently Used): Evicts the item that has not been accessed for the longest time. Good general-purpose policy.
+LFU (Least Frequently Used): Evicts the item accessed least often. Protects hot items even if not recently accessed.
+TTL (Time-To-Live): Each item expires after a fixed duration. Simple and predictable, prevents stale data.
+Random: Evicts a random item. Simple and low overhead, surprisingly competitive in some workloads.
+
+Cache Invalidation
+
+Cache invalidation is famously hard. Strategies:
+
+TTL-based: Items expire automatically. Stale data can exist until expiry. Simple but may serve stale data.
+Event-driven invalidation: When the database record changes, publish an event that invalidates the cache key. Requires an event bus and careful handling of race conditions.
+Write-through invalidation: On every write, delete or update the cache key. Ensures consistency but requires coordination.
+
+Cache Stampede (Thundering Herd)
+
+When a hot cache key expires simultaneously many requests all miss and hit the database at once. Solutions:
+- Probabilistic early expiration: Refresh the cache slightly before expiry with a small probability.
+- Mutex/lock on cache miss: Only one request fetches from DB; others wait.
+- Background refresh: Serve stale data while asynchronously refreshing.
+
+Consistent Hashing
+
+Distributing keys across cache nodes uses consistent hashing to minimize reshuffling when nodes are added or removed. Each node owns a range of the hash ring. Adding a node only moves the keys between it and its predecessor.
+
+Virtual nodes (vnodes) assign multiple positions per physical node on the ring, ensuring more even distribution and finer-grained rebalancing.
+
+Redis vs Memcached
+
+Memcached: Simple key-value store with very high throughput. Multi-threaded. No persistence, no replication in open-source version. Best for simple caching.
+
+Redis: Richer data structures (lists, sets, sorted sets, hashes, streams). Single-threaded core (with I/O threads). Supports persistence, replication, Lua scripting, pub/sub, and cluster mode. Redis Cluster shards data across nodes automatically.
+
+Cache Coherence in Distributed Writes
+
+When multiple application instances write through the cache, race conditions can cause stale writes. A write from instance A may overwrite a newer write from instance B if the operations interleave. Use optimistic locking (check-and-set with a version), or last-write-wins with timestamps, depending on consistency requirements.

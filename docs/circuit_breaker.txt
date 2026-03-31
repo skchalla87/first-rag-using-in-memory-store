@@ -1,0 +1,35 @@
+Circuit Breaker Pattern
+
+The circuit breaker is a stability pattern that prevents cascading failures in distributed systems. It wraps calls to a remote service and trips open when failure rate exceeds a threshold, stopping further calls until the service recovers.
+
+States
+
+Closed: Normal operation. All calls pass through. Failures are counted in a sliding window. When the failure rate exceeds the threshold the circuit trips to Open.
+
+Open: Calls are rejected immediately without reaching the downstream service. A timeout timer starts. This gives the failing service time to recover and prevents the caller from accumulating threads or connections waiting for a timeout.
+
+Half-Open: After the timeout expires the circuit allows a limited number of probe requests through. If they succeed, the circuit closes. If they fail, it returns to Open and resets the timer.
+
+Failure Detection
+
+Failure windows can be count-based (last N calls) or time-based (calls in last N seconds). Tracked metrics include exception rate, slow call rate (calls exceeding a latency threshold), and combinations of both.
+
+Fallback Strategies
+
+When the circuit is open, callers can return a cached response, a static default, or an error response. The right fallback depends on business requirements — returning stale data is preferable to throwing an error in many cases.
+
+Relationship to Retry
+
+Retries amplify load on an already struggling service. Circuit breakers and retries must be coordinated. A common pattern: retry with exponential backoff within a single call attempt, but stop all calls when the circuit trips open.
+
+Bulkhead Integration
+
+Circuit breakers are often combined with bulkheads (thread pool or semaphore isolation per dependency). This limits the blast radius of a slow dependency — it can only consume its own pool, not starve the entire application.
+
+Implementation Notes
+
+Libraries like Resilience4j (Java), Polly (.NET), and Hystrix (Java, now maintenance mode) provide circuit breaker implementations. Key configuration parameters are: failure rate threshold, minimum number of calls before tripping, wait duration in open state, and permitted calls in half-open state.
+
+Distributed Circuit Breakers
+
+In a horizontally scaled service each instance maintains its own circuit state. This means one instance may trip while others remain closed. A shared state store (Redis, Consul) can synchronize circuit state across instances for faster cluster-wide protection, at the cost of added complexity.

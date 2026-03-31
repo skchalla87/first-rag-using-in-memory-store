@@ -1,0 +1,40 @@
+Write-Ahead Log (WAL)
+
+The write-ahead log is a fundamental technique for ensuring durability and atomicity in databases and distributed systems. The core principle: before any change is applied to the actual data, it is first recorded in an append-only log on durable storage.
+
+Why WAL
+
+Without WAL, a crash mid-write can leave data in a partially updated state. WAL ensures that after a crash and restart, the system can replay the log to reach a consistent state. It separates the commitment of an operation (writing to the log) from its application (modifying data structures on disk).
+
+How It Works
+
+1. Before modifying any data page, the database writes a log record describing the change to the WAL file.
+2. The log record is flushed to disk (fsync).
+3. The data page is modified in memory (buffer pool).
+4. The data page is eventually written to disk asynchronously.
+
+On crash recovery, the database reads the WAL and replays committed transactions that did not make it to the data files (redo), and rolls back uncommitted transactions (undo).
+
+WAL and Durability
+
+A transaction is durable once its commit record is written and flushed to the WAL. Data pages can remain in memory (dirty) for a long time. This is called write-ahead logging — the log record must precede the corresponding data page write.
+
+Group Commit
+
+Flushing the WAL to disk (fsync) is expensive. Databases batch multiple transactions and flush once for the group. Each transaction in the batch becomes durable with a single fsync, amortizing the I/O cost across many commits.
+
+WAL in Replication
+
+In PostgreSQL and MySQL, the WAL (called binlog in MySQL) is streamed to replicas. A replica applies WAL records to keep its data in sync. This is called physical replication (PostgreSQL) or logical replication when the log contains higher-level operations rather than raw page changes.
+
+Log-Structured Storage
+
+LSM trees (used in RocksDB, Cassandra, LevelDB) take WAL further. All writes go first to a WAL and an in-memory structure (memtable). When the memtable is full it is flushed to immutable sorted files (SSTables) on disk. Compaction merges SSTables over time. This gives very high write throughput because all writes are sequential.
+
+Segment Management
+
+WAL files grow indefinitely unless truncated. Checkpointing periodically writes all dirty data pages to disk, after which WAL segments preceding the checkpoint can be safely deleted. This bounds recovery time (only replay WAL since last checkpoint) and disk usage.
+
+WAL in Distributed Consensus
+
+Raft and Paxos use a log that is conceptually a WAL. Every state machine change is first appended to the distributed log and replicated to a quorum before being applied. The log is the source of truth; the state machine is derived from it.

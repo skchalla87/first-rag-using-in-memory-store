@@ -1,0 +1,51 @@
+Service Mesh
+
+A service mesh is an infrastructure layer that handles service-to-service communication in a microservices architecture. It provides traffic management, observability, and security without requiring application code changes.
+
+The Sidecar Pattern
+
+In a service mesh each service instance is paired with a sidecar proxy (e.g., Envoy). The sidecar intercepts all inbound and outbound traffic. The application communicates with localhost; the sidecar handles everything else — load balancing, retries, circuit breaking, TLS, and telemetry.
+
+The control plane configures sidecar proxies centrally. The data plane (the collection of sidecars) enforces those configurations.
+
+Traffic Management
+
+Service meshes provide fine-grained traffic control:
+
+- Load balancing: Round-robin, least-request, consistent hashing per service.
+- Traffic splitting: Route 5% of traffic to a canary version, 95% to stable. Enables blue-green and canary deployments.
+- Fault injection: Inject latency or errors into requests for chaos testing.
+- Retries and timeouts: Configured centrally, applied by every sidecar automatically.
+- Circuit breaking: Trip open when upstream error rate exceeds threshold.
+
+Observability
+
+Because all traffic flows through sidecar proxies, the mesh collects metrics, logs, and traces automatically.
+
+- Metrics: Request rate, error rate, latency percentiles (p50, p95, p99) per service pair.
+- Distributed tracing: Sidecars propagate trace context headers (B3, W3C TraceContext) and report spans to a tracing backend (Jaeger, Zipkin, Tempo).
+- Access logs: Every request logged with source, destination, status, and latency.
+
+Security
+
+mTLS (mutual TLS): The mesh issues certificates to each service and enforces mutual authentication. All traffic between services is encrypted and both endpoints are verified. This is transparent to the application.
+
+Authorization policies: Define which services are allowed to call which other services, at the HTTP method and path level.
+
+Certificate rotation: The control plane rotates short-lived certificates automatically without restarting services.
+
+Popular Implementations
+
+Istio: The most feature-rich mesh. Uses Envoy sidecars and a control plane (istiod). Powerful but operationally complex.
+
+Linkerd: Focuses on simplicity and performance. Uses its own ultralight proxy written in Rust. Easier to operate than Istio.
+
+Consul Connect: HashiCorp's mesh integrated with Consul service discovery.
+
+AWS App Mesh / Google Traffic Director: Managed meshes that use Envoy but offload control plane operations to the cloud provider.
+
+Ambient Mesh (Istio): A newer mode that removes per-pod sidecars in favor of shared per-node proxies, reducing resource overhead.
+
+Trade-offs
+
+Service meshes add operational complexity and resource overhead (CPU and memory for sidecar proxies). The benefits — uniform observability, zero-trust security, and resilience features without code changes — are most valuable in large microservices deployments. For small services or monoliths the overhead may not be justified.

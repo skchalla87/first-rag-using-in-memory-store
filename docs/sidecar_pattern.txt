@@ -1,0 +1,43 @@
+Sidecar Pattern
+
+The sidecar pattern attaches a helper process to a main application process to provide supporting functionality. The sidecar runs alongside the application in the same execution environment (same pod in Kubernetes) and shares resources like network namespace and storage volumes.
+
+Origin
+
+Named by analogy to a motorcycle sidecar — the sidecar is attached to the main vehicle, sharing its journey but providing a separate compartment with its own passenger or cargo. It is subordinate to the main application but extends its capabilities.
+
+What Sidecars Provide
+
+Proxying and networking: Intercept and manage all inbound and outbound traffic. Add retries, circuit breaking, load balancing, and mutual TLS without any application code changes. Envoy is the dominant sidecar proxy.
+
+Observability: Collect metrics, traces, and logs from the application process and forward them to centralized backends. The application emits telemetry to localhost; the sidecar handles batching, buffering, and delivery.
+
+Configuration and secret management: Poll a configuration service and write updated config or credentials to a shared volume. The application reads files; the sidecar keeps them fresh. Examples: Vault Agent, Consul Template.
+
+Log aggregation: Tail application log files and forward them to a log aggregation system (Elasticsearch, Splunk). Fluentd and Fluent Bit are commonly deployed as sidecars.
+
+Health adaptation: Translate health check formats. An application that exposes a proprietary health endpoint can have a sidecar that exposes the standard Kubernetes /healthz format.
+
+Benefits
+
+Separation of concerns: Infrastructure concerns (security, observability, networking) are decoupled from application logic.
+Language agnostic: The sidecar handles cross-cutting concerns for any language the application is written in.
+Independent deployment: The sidecar can be updated without redeploying the application.
+Uniform behavior: The same sidecar enforces the same policies across all services regardless of their implementation.
+
+Kubernetes Implementation
+
+In Kubernetes, a pod contains multiple containers that share the same network namespace and can share volumes via emptyDir or hostPath mounts. The sidecar is a second container in the pod spec. Init containers (which run and complete before main containers start) are sometimes called init sidecars and are used for setup tasks like populating a config file or waiting for a dependency.
+
+Drawbacks
+
+Resource overhead: Every pod runs an extra container consuming CPU and memory. At scale (thousands of pods) this is significant.
+Operational complexity: More containers per pod means more images to manage, update, and secure.
+Latency: Traffic through a local proxy adds microseconds of latency per hop.
+Debugging complexity: Network issues may originate in the sidecar, not the application.
+
+Alternatives
+
+Daemonset: Run one agent per node instead of per pod. Lower overhead but loses per-pod isolation and fine-grained control.
+Library: Embed the functionality in a shared library linked into the application. No separate process but requires per-language implementations and forces application redeploys for infrastructure updates.
+Ambient mesh: Istio's newer model replaces per-pod sidecars with a per-node Layer 4 proxy (ztunnel) and optional per-namespace Layer 7 proxies (waypoints), reducing overhead while preserving most benefits.

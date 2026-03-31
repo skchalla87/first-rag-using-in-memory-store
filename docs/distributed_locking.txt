@@ -1,0 +1,43 @@
+Distributed Locking
+
+Distributed locks coordinate access to a shared resource across multiple processes or machines. Unlike in-process locks, distributed locks must handle network partitions, process crashes, and clock skew.
+
+Use Cases
+
+Ensuring only one instance of a cron job runs at a time. Preventing duplicate processing of events. Coordinating writes to a shared external resource. Leader election (a distributed lock where the holder is the leader).
+
+Desirable Properties
+
+Mutual exclusion: Only one client holds the lock at a time.
+Deadlock freedom: Even if a lock holder crashes, the lock is eventually released (via expiry).
+Fault tolerance: The lock service remains available despite some node failures.
+
+Implementing with a Single Node
+
+Redis SETNX (SET if Not eXists) with an expiry is the simplest approach. A client sets a key with a unique value and a TTL. To release, it checks the value matches before deleting (using a Lua script for atomicity). Problems: the Redis node is a single point of failure.
+
+Redlock Algorithm
+
+Martin Kleppmann and the Redis team debated this algorithm extensively. It attempts distributed locking across N independent Redis nodes (typically 5). A client:
+1. Gets current time.
+2. Tries to acquire the lock on all N nodes with the same key, value, and TTL.
+3. The lock is acquired if a majority (N/2 + 1) of nodes granted it and the elapsed time is less than the TTL.
+4. If not acquired, releases the lock on all nodes.
+
+Controversy: Under certain timing conditions (process pauses, clock jumps) Redlock can grant the lock to two clients simultaneously. For resources requiring strict safety guarantees, fencing tokens are necessary.
+
+Fencing Tokens
+
+When a lock is granted, the lock service returns a monotonically increasing token. Clients include the token in every write to the protected resource. The resource rejects writes with a token lower than the highest seen. This prevents a crashed-and-restarted client (with a stale lock) from corrupting data even if it wakes up after its lock expired.
+
+ZooKeeper / etcd Based Locks
+
+ZooKeeper and etcd provide linearizable compare-and-swap operations which make correct distributed locks straightforward. ZooKeeper uses ephemeral sequential znodes — the client with the lowest sequence number holds the lock. Watches notify the next client when the lock is released. etcd uses leases with keepalive heartbeats; the lock is released automatically if the client crashes.
+
+Lease-Based Locking
+
+A lease is a lock with an expiry time. The holder must renew the lease periodically. If renewal fails (client crash, network partition), the lease expires and the lock is released. Lease length is a trade-off: short leases recover quickly from failures but are vulnerable to false expiry under GC pauses or network hiccups.
+
+Lock Granularity
+
+Coarse locks (one lock for the whole resource) are simple but limit concurrency. Fine-grained locks (per-row, per-shard) improve throughput but add complexity and risk of deadlock. Deadlock detection in distributed systems is expensive; timeout-based deadlock breaking is more common.

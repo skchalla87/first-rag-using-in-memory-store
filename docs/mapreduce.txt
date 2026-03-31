@@ -1,0 +1,53 @@
+MapReduce
+
+MapReduce is a programming model and execution framework for processing large datasets in parallel across a cluster. Introduced by Google in 2004, it abstracts fault tolerance and parallelism from the application developer.
+
+Programming Model
+
+The programmer writes two functions:
+
+Map: Takes an input key-value pair and produces a set of intermediate key-value pairs. Applied independently to each input record. Can run in parallel on all input data simultaneously.
+
+Reduce: Takes an intermediate key and a list of all values for that key, and produces output key-value pairs. Aggregates, summarizes, or filters grouped values.
+
+Example: Word Count
+
+Map function: For each word in a document, emit (word, 1).
+Reduce function: For each word, sum all the 1s. Emit (word, total_count).
+
+This single pattern counts words across terabytes of text in parallel across thousands of machines.
+
+Execution Framework
+
+1. Input splitting: The input dataset is split into M chunks (typically 64–128 MB each). One map task per split.
+2. Map phase: The framework assigns map tasks to workers. Each worker reads its input split, applies the map function, and buffers intermediate key-value pairs in memory.
+3. Shuffle and sort: Intermediate pairs are partitioned by key (using a hash function), sorted, and transferred to reducers. This is the most expensive phase — it involves network I/O across all machines.
+4. Reduce phase: Each reducer receives all values for its assigned keys (sorted). Applies the reduce function and writes output to distributed storage.
+5. Output: R output files (one per reducer) are written to distributed storage (GFS, HDFS).
+
+Fault Tolerance
+
+Workers are expected to fail. The master pings workers periodically. If a worker fails:
+- Its incomplete map tasks are rescheduled on another worker.
+- Its completed map tasks are also rescheduled (their output was on local disk, now inaccessible).
+- Its reduce tasks are rescheduled only if incomplete (output is on distributed storage).
+
+The master itself is a single point of failure in the original design. Later systems (YARN) made it fault-tolerant.
+
+Stragglers and Speculative Execution
+
+Slow machines (stragglers) can bottleneck the entire job — all reducers wait for the slowest mapper. Speculative execution starts redundant copies of slow tasks on other machines. The first to complete wins; the duplicate is killed. This dramatically reduces tail latency for large jobs.
+
+Combiner
+
+A combiner (mini-reducer) runs on the map worker after the map phase to partially aggregate intermediate output before shuffling. For associative and commutative operations (like sum, max), the combiner reduces network traffic significantly. Word count: instead of shuffling one million (word, 1) pairs, the combiner first reduces them to (word, local_count) per mapper.
+
+Limitations
+
+MapReduce materializes intermediate state to disk between stages. Multi-stage pipelines (chaining multiple MapReduce jobs) incur repeated disk reads and writes. This makes iterative algorithms (machine learning, graph processing) very slow.
+
+Apache Spark addressed this by keeping intermediate data in memory and representing computation as a DAG of transformations rather than discrete Map and Reduce phases. Spark is 10-100x faster than MapReduce for iterative workloads.
+
+Legacy and Influence
+
+Hadoop MapReduce (open-source implementation on HDFS) powered data processing at scale for a decade. Modern alternatives (Spark, Flink, Beam) supersede it for most use cases, but the MapReduce model's influence on parallel data processing remains foundational.

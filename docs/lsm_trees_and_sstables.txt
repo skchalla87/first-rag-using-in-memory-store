@@ -1,0 +1,53 @@
+LSM Trees and SSTables
+
+Log-Structured Merge Trees (LSM trees) are a data structure optimized for high write throughput. They are used in RocksDB, LevelDB, Apache Cassandra, HBase, and InfluxDB. The core idea: buffer writes in memory and write to disk sequentially in large batches, avoiding the random I/O that limits B-tree performance.
+
+Components
+
+Memtable: An in-memory sorted data structure (often a red-black tree or skip list). All writes go here first. Reads check the memtable before going to disk.
+
+Write-Ahead Log (WAL): Before writing to the memtable, the write is appended to a WAL file for durability. If the process crashes, the memtable can be rebuilt from the WAL.
+
+SSTable (Sorted String Table): When the memtable reaches a size threshold it is flushed to disk as an immutable, sorted file. Each SSTable contains a sequence of key-value pairs sorted by key, plus an index for binary search.
+
+Levels: SSTables are organized into levels (L0, L1, L2, ...). L0 contains the freshest SSTables flushed from the memtable and may have overlapping key ranges. Higher levels have non-overlapping key ranges and are larger.
+
+Write Path
+
+1. Write to WAL (sequential, durable).
+2. Write to memtable (in-memory, fast).
+3. Return success to client.
+4. When memtable fills, flush to L0 SSTable.
+5. Background compaction merges and reorganizes SSTables.
+
+Read Path
+
+1. Check memtable.
+2. Check L0 SSTables (all of them, since ranges overlap).
+3. Check L1, L2, ... (binary search within each level's key range).
+4. Return the most recent version found.
+
+Reads can be slow in the worst case because they may check many SSTables. Bloom filters (one per SSTable) short-circuit most negative lookups — if the bloom filter says the key is not in this SSTable, skip it entirely.
+
+Compaction
+
+Compaction merges multiple SSTables into new ones, discarding deleted keys (tombstones) and old versions of overwritten keys. It is essential for:
+- Bounding read amplification (fewer SSTables to check).
+- Reclaiming disk space from deleted/overwritten data.
+- Reorganizing L0 into non-overlapping higher levels.
+
+Compaction strategies include size-tiered (merge SSTables of similar size) and leveled (maintain strict size and non-overlap invariants per level). Leveled compaction gives better read performance; size-tiered gives better write performance.
+
+Tombstones
+
+Deletes in an LSM tree write a tombstone marker rather than removing the key. The tombstone shadows older values during reads. Tombstones are physically removed during compaction when they reach the bottom level and there are no older SSTables that could contain the key.
+
+Amplification Factors
+
+Write amplification: A single logical write results in multiple physical writes due to compaction. Leveled compaction can amplify 10-30x.
+Read amplification: A single logical read may check multiple SSTables across levels.
+Space amplification: Multiple versions of keys exist simultaneously until compaction removes them.
+
+LSM vs B-Tree
+
+B-trees optimize for read performance with in-place updates and O(log n) reads. LSM trees optimize for write throughput with sequential I/O but trade off read performance and background CPU/IO for compaction. Modern databases often use B-trees for OLTP (low write amplification, predictable reads) and LSM trees for write-heavy workloads like time-series data and event logs.

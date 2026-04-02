@@ -4,7 +4,7 @@ Chunks each document, generates embeddings, and inserts into PostgreSQL.
 """
 
 from pathlib import Path
-from DocumentChunker import DocumentChunker
+from DocumentChunker import ParagraphChunker
 from EmbeddingGenerator import EmbeddingGenerator
 from PgVectorStore import PgVectorStore
 
@@ -15,7 +15,7 @@ def load_documents(
     connection_string: str = "postgresql://raguser:ragpass@localhost:5432/ragdb",
 ):
     store = PgVectorStore(connection_string)
-    chunker = DocumentChunker()
+    chunker = ParagraphChunker()
     embedder = EmbeddingGenerator(embedding_model)
 
     docs_path = Path(docs_dir)

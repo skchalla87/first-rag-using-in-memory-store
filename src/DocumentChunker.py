@@ -46,7 +46,7 @@ class ParagraphChunker:
     Con: Variable chunk sizes, very long paragraphs won't be split
     """
 
-    def __init__(self, max_chunk_size: int = 1000, min_chunk_size: int = 50):
+    def __init__(self, max_chunk_size: int = 500, min_chunk_size: int = 50):
         """
         Args:
             max_chunk_size: Merge paragraphs together until this char limit

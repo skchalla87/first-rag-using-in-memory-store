@@ -1,0 +1,271 @@
+{
+  "summary": {
+    "avg_precision": 0.708,
+    "avg_recall": 0.806,
+    "avg_hit_rate": 0.917,
+    "avg_mrr": 0.917,
+    "avg_faithfulness": 0.594,
+    "avg_refusal_correct": 0.917,
+    "avg_mrr_easy": 1.0,
+    "avg_mrr_medium": 1.0,
+    "avg_mrr_hard": 0.5,
+    "total_questions": 12
+  },
+  "results": [
+    {
+      "id": "q001",
+      "question": "What is the CAP theorem?",
+      "category": "consensus",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "cap_theorem",
+        "backpressure",
+        "backpressure"
+      ],
+      "relevant_sources": [
+        "cap_theorem"
+      ],
+      "answer": "\"CAP means choose 2 of 3\": [Source: cap_theorem]\n\nThis suggests that the CAP theorem is a statement implying that in distributed systems, one must make trade-offs between Consistency (C), Availability (A), and Partition tolerance (P) by choosing two out of three.",
+      "precision": 0.5,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.35294117647058826,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q002",
+      "question": "How does a circuit breaker work?",
+      "category": "reliability",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "circuit_breaker",
+        "circuit_breaker",
+        "circuit_breaker"
+      ],
+      "relevant_sources": [
+        "circuit_breaker"
+      ],
+      "answer": "The circuit breaker works by:\n\n1. Wrapping calls to a remote service.\n2. Counting failures in a sliding window.\n3. Tripping open when the failure rate exceeds a threshold, stopping further calls until the service recovers.\n\nSource: [Source: circuit_breaker] Closed: Normal operation. All calls pass through. Failures are counted in a sliding window. When the failure rate exceeds the threshold the circuit trips to Open.",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.8076923076923077,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q003",
+      "question": "What is a bloom filter used for?",
+      "category": "data_structures",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "bloom_filters",
+        "bloom_filters",
+        "bloom_filters"
+      ],
+      "relevant_sources": [
+        "bloom_filters"
+      ],
+      "answer": "\"A Bloom filter is a practical tool for reducing expensive lookups (disk I/O, network calls) with a small, tunable probability of false positives.\"\n\nSource: [bloom_filters]\n\nIt is also used in:\n\n* Database Query Optimization to skip unnecessary I/O\n* Distributed Caching to reduce cache miss lookups",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.8421052631578947,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q004",
+      "question": "What is the write-ahead log?",
+      "category": "storage",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "write_ahead_log",
+        "lsm_trees_and_sstables",
+        "write_ahead_log"
+      ],
+      "relevant_sources": [
+        "write_ahead_log"
+      ],
+      "answer": "\"The write-ahead log is a fundamental technique for ensuring durability and atomicity in databases and distributed systems.\" [Source: write_ahead_log]\n\nAdditionally, according to other sources:\n- \"Before writing to the memtable, the write is appended to a WAL file for durability.\" [Source: lsm_trees_and_sstables]\n- \"A transaction is durable once its commit record is written and flushed to the WAL.\" [Source: write_ahead_log]",
+      "precision": 0.5,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.6538461538461539,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q005",
+      "question": "What is the gossip protocol?",
+      "category": "protocols",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "gossip_protocol",
+        "gossip_protocol",
+        "gossip_protocol"
+      ],
+      "relevant_sources": [
+        "gossip_protocol"
+      ],
+      "answer": "According to the context, the gossip protocol is described as \"spread information through a network the same way a rumor spreads among people.\" (Source: gossip_protocol)\n\nSo, the answer is:\n\nA protocol that spreads information through a network by periodically exchanging state between nodes.",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.3888888888888889,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q006",
+      "question": "How does leader election work in distributed systems?",
+      "category": "consensus",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "leader_election",
+        "crdts",
+        "distributed_locking"
+      ],
+      "relevant_sources": [
+        "leader_election",
+        "consensus_algorithms"
+      ],
+      "answer": "Leader election algorithms allow nodes in a distributed system to agree on a single leader. The leader coordinates actions like assigning tasks, managing distributed transactions, or sequencing operations.\n\n[Source: leader_election]",
+      "precision": 0.3333333333333333,
+      "recall": 0.5,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.8823529411764706,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q007",
+      "question": "What are the differences between strong and eventual consistency?",
+      "category": "consistency",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "consistency_models",
+        "consistency_models",
+        "crdts"
+      ],
+      "relevant_sources": [
+        "consistency_models",
+        "cap_theorem"
+      ],
+      "answer": "According to the context:\n\nStrong Consistency (Source: crdts):\nAfter an update completes, any subsequent access will return the updated value. This is the hardest to achieve in distributed systems but the easiest for developers to reason about.\n\nEventual Consistency (Source: consistency_models):\nIf no new updates are made to a given data item, eventually all accesses to that item will return the last updated value.\n\nThe differences between strong and eventual consistency are:\n\n* Strong Consistency returns the updated value immediately after an update completes.\n* Eventual Consistency returns the last updated value only when no new updates are made to the data item.",
+      "precision": 0.5,
+      "recall": 0.5,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.6774193548387096,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q008",
+      "question": "How do distributed transactions work?",
+      "category": "transactions",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "distributed_transactions",
+        "saga_pattern",
+        "two_phase_commit"
+      ],
+      "relevant_sources": [
+        "distributed_transactions",
+        "two_phase_commit"
+      ],
+      "answer": "A distributed transaction that spans multiple nodes, databases, or services must maintain ACID properties across all participants. According to the source [Source: distributed_transactions], this is achieved by:\n\n\"Atomicity: All nodes commit or all abort\n- Consistency: Valid state transitions everywhere\n- Isolation: Concurrent transactions don't interfere\n- Durability: Committed data survives failures\"\n\nAdditionally, the two-phase commit protocol ensures that all participants in a distributed transaction either all commit or all abort. However, it is noted that two-phase commit can be blocking and leave the system in an inconsistent state if the coordinator fails.\n\nSo, to summarize, distributed transactions work by ensuring ACID properties across all participants, and using protocols like two-phase commit to ensure atomicity and consistency.",
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.7083333333333334,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q009",
+      "question": "How do CRDTs relate to eventual consistency?",
+      "category": "consistency",
+      "difficulty": "hard",
+      "retrieved_sources": [
+        "crdts",
+        "consistency_models",
+        "crdts"
+      ],
+      "relevant_sources": [
+        "crdts",
+        "consistency_models",
+        "vector_clocks"
+      ],
+      "answer": "CRDTs guarantee strong eventual consistency: all replicas that have received the same updates will converge to the same state. [Source: crdts] \n\nThis implies that CRDTs achieve eventual consistency, but with a stronger guarantee of \"strong eventual consistency\" compared to traditional eventual consistency models.",
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.5238095238095238,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q010",
+      "question": "What strategies exist for handling failures in distributed systems?",
+      "category": "reliability",
+      "difficulty": "hard",
+      "retrieved_sources": [
+        "leader_election",
+        "gossip_protocol",
+        "cap_theorem"
+      ],
+      "relevant_sources": [
+        "fault_tolerance",
+        "circuit_breaker",
+        "saga_pattern"
+      ],
+      "answer": "Leader election algorithms and gossip protocols are mentioned as strategies for handling failures in distributed systems.\n\n\"Leader election algorithms allow nodes in a distributed system to agree on a single leader. The leader coordinates actions like assigning tasks, managing distributed transactions, or sequencing operations.\" [Source: leader_election]\n\n\"A decentralized, resilient way to disseminate information is needed... A gossip protocol can be used to achieve this.\" [Source: gossip_protocol]",
+      "precision": 0.0,
+      "recall": 0.0,
+      "hit_rate": 0.0,
+      "mrr": 0.0,
+      "faithfulness": 0.5294117647058824,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q011",
+      "question": "How does Kubernetes work?",
+      "category": "out_of_corpus",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "sidecar_pattern",
+        "sidecar_pattern",
+        "design_patterns"
+      ],
+      "relevant_sources": [],
+      "answer": "I don't have information about this in the provided documents. The context only discusses the sidecar pattern in Kubernetes and design patterns, but does not contain general information on how Kubernetes works.",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.3076923076923077,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q012",
+      "question": "What is Redis and how is it used?",
+      "category": "out_of_corpus",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "distributed_locking",
+        "distributed_caching",
+        "circuit_breaker"
+      ],
+      "relevant_sources": [],
+      "answer": "According to the provided context:\n\n\"Redis: Richer data structures (lists, sets, sorted sets, hashes, streams). Single-threaded core (with I/O threads). Supports persistence, replication, Lua scripting, pub/sub, and cluster mode.\"\n\nFrom this quote, we can infer that Redis is a database that supports various data structures, including lists, sets, and hashes. It also provides features such as persistence, replication, and clustering.\n\nAs for how it's used, the context mentions several examples:\n\n* Distributed locking: \"Redis SETNX (SET if Not eXists) with an expiry is the simplest approach.\"\n* Circuit breaker: \"A shared state store (Redis, Consul) can synchronize circuit state across instances for faster cluster-wide protection...\"\n* Distributed caching (Source: distributed_caching): \"Redis... Supports persistence, replication...\"\n\nOverall, Redis is a versatile database that can be used for various purposes, including data storage, distributed locking, and circuit breaking.",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.45161290322580644,
+      "refusal_correct": 0.0
+    }
+  ]
+}

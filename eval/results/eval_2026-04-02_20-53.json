@@ -1,0 +1,295 @@
+{
+  "summary": {
+    "avg_precision": 0.575,
+    "avg_recall": 0.819,
+    "avg_hit_rate": 0.917,
+    "avg_mrr": 0.854,
+    "avg_faithfulness": 0.48,
+    "avg_refusal_correct": 0.917,
+    "avg_mrr_easy": 1.0,
+    "avg_mrr_medium": 0.75,
+    "avg_mrr_hard": 0.5,
+    "total_questions": 12
+  },
+  "results": [
+    {
+      "id": "q001",
+      "question": "What is the CAP theorem?",
+      "category": "consensus",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "cap_theorem",
+        "cap_theorem",
+        "backpressure",
+        "two_phase_commit",
+        "backpressure"
+      ],
+      "relevant_sources": [
+        "cap_theorem"
+      ],
+      "answer": "The CAP theorem states that in a distributed system, you can have at most two of three properties:\n\n- Consistency: All nodes see the same data at the same time\n- Availability: Every request receives a response (success or failure)\n- Partition Tolerance: \n\n(Source: [cap_theorem])",
+      "precision": 0.3333333333333333,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.8125,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q002",
+      "question": "How does a circuit breaker work?",
+      "category": "reliability",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "circuit_breaker",
+        "circuit_breaker",
+        "circuit_breaker",
+        "circuit_breaker",
+        "rate_limiting_and_backpressure"
+      ],
+      "relevant_sources": [
+        "circuit_breaker"
+      ],
+      "answer": "\"A circuit breaker wraps calls to a remote service and trips open when failure rate exceeds a threshold, stopping further calls until [Source: circuit_breaker] ... already struggling service.\" \n\nIn other words, it monitors the failure rate of the service and if it exceeds a certain threshold, it opens the circuit (stops making further requests) to prevent cascading failures.",
+      "precision": 0.5,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.5652173913043478,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q003",
+      "question": "What is a bloom filter used for?",
+      "category": "data_structures",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "bloom_filters",
+        "bloom_filters",
+        "bloom_filters",
+        "bloom_filters",
+        "bloom_filters"
+      ],
+      "relevant_sources": [
+        "bloom_filters"
+      ],
+      "answer": "\"A fast, space-efficient way to answer 'definitely not present' vs 'possibly present'\" [Source: bloom_filters]",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.25,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q004",
+      "question": "What is the write-ahead log?",
+      "category": "storage",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "write_ahead_log",
+        "write_ahead_log",
+        "fault_tolerance",
+        "write_ahead_log",
+        "lsm_trees_and_sstables"
+      ],
+      "relevant_sources": [
+        "write_ahead_log"
+      ],
+      "answer": "According to [Source: write_ahead_log], \"The write-ahead log is a fundamental technique for ensuring durability and atomicity in databases and distributed systems.\"\n\nAlso, from [Source: fault_tolerance] it's mentioned that \"Write-Ahead Logging (WAL) [...] - Log changes before applying\".",
+      "precision": 0.3333333333333333,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.5789473684210527,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q005",
+      "question": "What is the gossip protocol?",
+      "category": "protocols",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "gossip_protocol",
+        "gossip_protocol",
+        "gossip_protocol",
+        "gossip_protocol",
+        "gossip_protocol"
+      ],
+      "relevant_sources": [
+        "gossip_protocol"
+      ],
+      "answer": "A decentralized, resilient way to disseminate information in a large distributed system with hundreds or thousands of nodes. \n\n[Source: gossip_protocol] (Problem section)",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.6923076923076923,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q006",
+      "question": "How does leader election work in distributed systems?",
+      "category": "consensus",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "leader_election",
+        "leader_election",
+        "leader_election",
+        "distributed_locking",
+        "crdts"
+      ],
+      "relevant_sources": [
+        "leader_election",
+        "consensus_algorithms"
+      ],
+      "answer": "Leader election algorithms allow nodes in a distributed system to agree on a single leader. The leader coordinates actions like assigning tasks, managing distributed transactions, or sequencing operations.\n\n(Reference: [Source: leader_election])",
+      "precision": 0.3333333333333333,
+      "recall": 0.5,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.8333333333333334,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q007",
+      "question": "What are the differences between strong and eventual consistency?",
+      "category": "consistency",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "gossip_protocol",
+        "replication",
+        "crdts",
+        "consistency_models",
+        "cap_theorem"
+      ],
+      "relevant_sources": [
+        "consistency_models",
+        "cap_theorem"
+      ],
+      "answer": "According to the context, here are the differences between strong and eventual consistency:\n\n* Strong Consistency (as mentioned in the Replication section): \"Reads can be served by primary\" which implies that the data is up-to-date on the primary node.\n* Eventual Consistency (as mentioned in the Gossip Protocol section): \"Gossip guarantees eventual delivery, not immediate consistency. Nodes may briefly have stale views of cluster state.\" and also in the Replication section: \"Reads can be served by followers (eventual consistency)\" which implies that the data is not necessarily up-to-date on all nodes.\n\nAdditionally, from the CRDTs section, we know that CRDTs guarantee \"strong eventual consistency\", suggesting that eventual consistency can sometimes imply stronger guarantees than just eventual delivery.",
+      "precision": 0.4,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 0.25,
+      "faithfulness": 0.4523809523809524,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q008",
+      "question": "How do distributed transactions work?",
+      "category": "transactions",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "distributed_transactions",
+        "two_phase_commit",
+        "two_phase_commit",
+        "saga_pattern",
+        "saga_pattern"
+      ],
+      "relevant_sources": [
+        "distributed_transactions",
+        "two_phase_commit"
+      ],
+      "answer": "A Distributed Transaction works by maintaining ACID properties across all participants, which includes Atomicity (where \"All nodes commit or all\" [Source: two_phase_commit]). This ensures that the transaction is either fully committed or rolled back, depending on the outcome. \n\nIn a distributed transaction spanning multiple databases or services, each participant can locally commit, but holds locks on the affected rows until Phase 2 completes.",
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.5555555555555556,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q009",
+      "question": "How do CRDTs relate to eventual consistency?",
+      "category": "consistency",
+      "difficulty": "hard",
+      "retrieved_sources": [
+        "crdts",
+        "crdts",
+        "gossip_protocol",
+        "quorum",
+        "crdts"
+      ],
+      "relevant_sources": [
+        "crdts",
+        "consistency_models",
+        "vector_clocks"
+      ],
+      "answer": "CRDTs guarantee strong eventual consistency: all replicas that have received the same updates will converge to the same state. [Source: crdts] \n\nAdditionally, a separate source explains that \"They guarantee strong eventual consistency\" and another text mentioning CRDTs states: \"CRDTs ... guarantee strong eventual consistency\".",
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.42857142857142855,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q010",
+      "question": "What strategies exist for handling failures in distributed systems?",
+      "category": "reliability",
+      "difficulty": "hard",
+      "retrieved_sources": [
+        "leader_election",
+        "consensus",
+        "leader_election",
+        "gossip_protocol",
+        "quorum"
+      ],
+      "relevant_sources": [
+        "fault_tolerance",
+        "circuit_breaker",
+        "saga_pattern"
+      ],
+      "answer": "According to the context, when the current leader fails, \"the system must quickly elect a new one to maintain availability.\" This suggests that a strategy for handling failures in distributed systems is to have an election process in place to quickly choose a new leader. \n\nAdditionally, the Consensus problem in Distributed Systems states that \"Multiple nodes need to agree on a value or sequence of values despite failures and network issues.\" This implies that another strategy for handling failures is to use consensus algorithms, which allow nodes to agree on a value or action even when some nodes fail or experience network issues.\n\nLastly, the FLP Impossibility result mentions failures as one of the challenges in achieving consensus, further emphasizing the importance of failure-handling strategies in distributed systems. \n\nSource: leader_election and consensus sections.",
+      "precision": 0.0,
+      "recall": 0.0,
+      "hit_rate": 0.0,
+      "mrr": 0.0,
+      "faithfulness": 0.4117647058823529,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q011",
+      "question": "How does Kubernetes work?",
+      "category": "out_of_corpus",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "sidecar_pattern",
+        "design_patterns",
+        "fault_tolerance",
+        "sidecar_pattern",
+        "sidecar_pattern"
+      ],
+      "relevant_sources": [],
+      "answer": "I don't have information about this in the provided documents.",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.0,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q012",
+      "question": "What is Redis and how is it used?",
+      "category": "out_of_corpus",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "distributed_locking",
+        "crdts",
+        "gossip_protocol",
+        "crdts",
+        "rate_limiting_and_backpressure"
+      ],
+      "relevant_sources": [],
+      "answer": "\"Redis node is a single point of failure.\" - [Source: distributed_locking]\n\nThis suggests that Redis is related to distributed locking, but the exact nature of Redis itself is not explicitly stated in the provided context. However, based on the subsequent mentions of \"Redis Cluster\" and its use cases (e.g., topology), it appears that Redis is a system or database used for clustering and replication.\n\nIn [Source: gossip_protocol], Redis Cluster is mentioned as one of the systems that uses Gossip Protocol for replicating data across all nodes. This further supports the idea that Redis is a distributed system or database.",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.18421052631578946,
+      "refusal_correct": 0.0
+    }
+  ]
+}

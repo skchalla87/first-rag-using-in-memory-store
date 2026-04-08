@@ -1,0 +1,35 @@
+Tail latency refers to the high-latency tail of service response time distributions that can disproportionately affect user experience and system performance metrics such as availability and reliability. Hedged requests are a technique used in distributed systems to mitigate the impact of tail latencies by initiating multiple concurrent requests to different replicas or data centers, allowing the system to choose the fastest response.
+
+### Core Concepts / How it Works
+
+Tail latency is often caused by outliers in system behavior that can arise due to various factors such as network congestion, server overload, or hardware failures. Hedged requests are designed to improve overall request throughput and reduce tail latencies through a proactive strategy where multiple redundant requests are sent to different locations (e.g., data centers) simultaneously. When the first response is received, all other ongoing requests are canceled, ensuring that only one of them contributes to the processing load at the server side.
+
+The core idea behind hedged requests lies in leveraging redundancy and parallelism to counteract the effects of high-latency scenarios. By initiating multiple requests concurrently but canceling all but the fastest response once it is received, systems can significantly reduce the chances of encountering tail latencies caused by slow or failing servers. This technique requires careful handling at both the client (sending) and server (receiving) ends to ensure that only one request's processing resources are utilized.
+
+At the client side, a hedged request strategy involves creating multiple versions of an initial request and sending them to different replicas or locations with varying levels of priority. These requests may be sent through different network paths or directed towards servers known for their lower latency or higher reliability. The client waits for any response to arrive and then cancels the remaining pending requests.
+
+On the server side, special handling is required to identify and process redundant requests efficiently without overloading system resources. This often involves implementing mechanisms such as request correlation identifiers (IDs) that can be used by both the client and server to track which responses are valid and which should be discarded. Additionally, servers might need to implement throttling or queuing strategies for incoming requests to avoid processing multiple copies of a single user request simultaneously.
+
+### When to Use It
+
+Hedged requests are particularly useful in scenarios where minimizing tail latencies is critical for maintaining high service availability and performance metrics. Some common use cases include:
+
+- **Distributed databases**: In environments like Cassandra or Riak, where data replication across multiple nodes is common, hedging can help ensure low-latency reads by querying several replicas concurrently.
+- **Cloud storage services**: For large-scale object stores (e.g., S3), sending simultaneous requests to different geographical regions or availability zones helps in reducing the impact of network latency spikes and infrastructure failures.
+- **Real-time web applications**: In systems where user interactions need immediate response, such as chat platforms or real-time analytics dashboards, hedged requests can improve responsiveness by avoiding bottlenecks at any single point.
+
+### Trade-offs and Limitations
+
+While hedged requests offer significant benefits in reducing tail latencies, they also introduce several trade-offs and limitations:
+
+- **Increased network traffic**: Sending multiple concurrent requests adds to the overall bandwidth consumption and network load.
+- **Complexity of implementation**: Proper handling of request correlation IDs, response validation, and cancellation logic introduces additional complexity both at the client and server ends.
+- **Resource utilization on servers**: Servers must be designed to handle redundant requests efficiently without causing unnecessary processing overhead or resource contention issues.
+- **Impact on consistency models**: In highly consistent systems (e.g., strongly ACID transactions), hedged requests may conflict with strict consistency requirements, necessitating careful synchronization mechanisms.
+
+### Key Takeaways
+
+- Tail latencies can severely degrade system performance and user experience; hedging is an effective strategy to mitigate their impact.
+- Implementing hedged requests requires managing multiple concurrent request paths and handling responses selectively based on speed and validity.
+- Hedged requests are most beneficial in scenarios involving distributed databases, cloud storage services, and real-time web applications where minimizing tail latencies is crucial for overall system performance.
+- Careful consideration of network efficiency, implementation complexity, server resource management, and consistency models must be taken into account when deploying hedging techniques.

@@ -1,0 +1,41 @@
+Zero Trust Security is an architectural approach to network and system security that does not inherently trust any person or device inside or outside of its perimeters. Instead, Zero Trust mandates strict access controls for every connection attempt, regardless of location.
+
+### Core Concepts / How it Works
+
+1. **Least Privilege Access**: At the heart of Zero Trust is the principle of least privilege (PoLP), which means that no user, system, or service should have any level of unnecessary access beyond what is required to perform its duties. This approach minimizes potential damage from compromised credentials by restricting permissions and access rights.
+
+2. **Continuous Verification**: In a Zero Trust architecture, verification of the identity and security posture of users and devices is an ongoing process rather than a one-time event during initial authentication. Identity providers continuously assess user identities through multi-factor authentication (MFA), contextual risk analysis, and other mechanisms to ensure that access privileges are up-to-date.
+
+3. **Microsegmentation**: Zero Trust networks segment resources into smaller units, limiting east-west traffic between them. Each micro-segment is secured independently with network security controls such as firewalls, IDS/IPS, and encryption, reducing the blast radius in case of a breach. This practice ensures that even if one part of the system is compromised, lateral movement by attackers is restricted.
+
+4. **Encryption Everywhere**: Data transmitted across networks within a Zero Trust architecture is encrypted to protect it from interception and tampering during transit. Encryption keys are managed through key management systems (KMS) with strict access controls and compliance monitoring to ensure that data confidentiality and integrity remain intact even in the presence of malicious actors.
+
+5. **Trusted Network Assumption Rejected**: Unlike traditional network security models that rely on securing perimeters, Zero Trust does not make assumptions about trust based on location or network segments. It treats all requests as potential threats and requires verification regardless of whether a user is inside or outside the corporate network perimeter.
+
+6. **Centralized Policy Management**: Implementing consistent security policies across an entire organization can be challenging without centralized management tools. Zero Trust architectures leverage identity and access management (IAM) platforms to enforce strict policies, monitor compliance status, and manage exceptions in real-time. This ensures that all entities adhere to the same stringent standards.
+
+### When to Use It
+
+1. **Cloud-Native Applications**: With increasing reliance on cloud services, traditional security models fall short due to dynamic nature of cloud environments. Zero Trust provides robust protection by treating both internal and external network traffic equally, ensuring secure communication between microservices and containers in a multi-tenant environment.
+   
+2. **Remote Work Scenarios**: As remote work becomes more prevalent, the attack surface for organizations expands beyond physical office networks. Adopting Zero Trust allows businesses to safely extend critical resources to off-site employees while maintaining strict access controls and continuous monitoring.
+
+3. **Regulated Industries (e.g., Healthcare, Finance)**: Compliance with regulatory requirements often necessitates stringent data protection measures. Zero Trust aligns well with these needs by implementing granular access controls and robust logging capabilities that facilitate audit trails necessary for compliance.
+
+### Trade-offs and Limitations
+
+1. **Complexity**: Implementing a fully-fledged Zero Trust architecture can be complex, particularly in large-scale enterprises where legacy systems coexist alongside modern applications. Integrating existing security solutions into a cohesive framework may require significant reconfiguration efforts.
+   
+2. **Performance Overhead**: Continuous verification processes like multi-factor authentication and real-time risk assessment add overhead to network transactions. For resource-constrained environments or high-transaction workloads, this could lead to performance degradation unless optimized properly.
+
+3. **User Experience Impact**: Strict enforcement of least privilege access policies can sometimes hinder productivity if overly restrictive. Balancing security needs with usability demands is crucial to avoid alienating end-users who may circumvent controls out of frustration.
+
+4. **Cost Implications**: Transitioning from a traditional network model to Zero Trust often entails investment in new technologies, training for staff, and continuous monitoring tools. Organizations must evaluate the long-term cost-benefit against potential risks mitigated by adopting this paradigm shift.
+
+### Key Takeaways
+
+- **Least Privilege Access** ensures that only necessary permissions are granted to users and services.
+- **Continuous Verification** requires ongoing identity validation and risk assessment.
+- **Microsegmentation** reduces the impact of breaches by isolating network segments.
+- **Encryption Everywhere** protects data in transit from unauthorized access or alteration.
+- **Centralized Policy Management** simplifies enforcement across diverse environments while ensuring consistency.

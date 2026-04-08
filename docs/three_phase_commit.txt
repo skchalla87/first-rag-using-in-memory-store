@@ -1,0 +1,46 @@
+Three-Phase Commit (3PC) is a distributed commit protocol that extends Two-Phase Commit (2PC) by adding an intermediate phase to eliminate the blocking problem — where a coordinator crash in 2PC can leave participants locked indefinitely waiting for a commit/abort decision.
+
+### Core Concepts / How It Works
+
+2PC has a fundamental flaw: if the coordinator crashes after participants vote "yes" but before sending the commit decision, participants are stuck holding locks with no way to safely proceed. 3PC solves this by ensuring no participant can be in a state where it has committed while others are uncertain.
+
+**The three phases:**
+
+1. **CanCommit (Phase 1):**
+   - Coordinator sends a `CanCommit?` query to all participants.
+   - Each participant responds `Yes` (ready to commit) or `No` (abort).
+   - If any participant says `No`, coordinator sends `Abort` to all and the protocol ends.
+
+2. **PreCommit (Phase 2):**
+   - If all voted `Yes`, coordinator sends `PreCommit` to all participants.
+   - Participants acknowledge and enter a "prepared to commit" state, writing to a redo log.
+   - **Key insight:** Once a participant acknowledges `PreCommit`, it knows all other participants also voted `Yes`. If the coordinator now crashes, participants can safely complete the commit themselves using a timeout.
+
+3. **DoCommit (Phase 3):**
+   - Coordinator sends `DoCommit` to all participants.
+   - Participants commit and release locks, then send acknowledgment.
+   - If the coordinator crashes before `DoCommit`, participants time out and elect a new coordinator — which can safely commit because the `PreCommit` phase guarantees everyone voted `Yes`.
+
+**Why this eliminates blocking:**
+In 2PC, a participant that voted `Yes` cannot safely commit or abort on timeout — it doesn't know if others voted `Yes` too. In 3PC, a participant that received `PreCommit` knows all others voted `Yes`, so it can safely commit on timeout. A participant that only received `CanCommit` (and times out) knows it's safe to abort.
+
+### When to Use It
+
+- Distributed database transactions requiring non-blocking coordinator failure recovery.
+- Financial or inventory systems where indefinitely blocked transactions are unacceptable.
+- In practice, 3PC is rarely used directly — Paxos and Raft-based protocols achieve similar goals with better failure handling and are more widely adopted.
+
+### Trade-offs and Limitations
+
+- **Does not handle network partitions:** 3PC assumes crash failures only. In a network partition, a participant may time out and commit while the coordinator (and other participants) are still alive but unreachable — causing split-brain.
+- **Higher message complexity:** 3 round trips vs 2 for 2PC, increasing latency for every transaction.
+- **Still blocking in some partition scenarios:** The non-blocking guarantee only holds under crash-stop failure models, not arbitrary network failures.
+- **Rarely implemented in practice:** The partition vulnerability makes 3PC theoretically interesting but operationally limited. Systems like Spanner and CockroachDB use Paxos-based commit instead.
+
+### Key Takeaways
+
+- 3PC adds a `PreCommit` phase between vote and commit, giving participants enough information to safely resolve coordinator crashes without blocking.
+- The three actual phases are **CanCommit → PreCommit → DoCommit**, not Prepare/Commit/Abort (that's 2PC).
+- The non-blocking guarantee only holds under crash-stop failures — network partitions can still cause inconsistency.
+- In modern systems, 3PC is largely superseded by Paxos/Raft-based commit protocols which handle both crashes and partitions correctly.
+- Understanding 3PC is valuable for grasping why consensus protocols like Paxos exist and what problems they solve over simpler commit protocols.

@@ -1,0 +1,32 @@
+Consistent hashing is a technique used in distributed systems to manage and distribute load across nodes efficiently while maintaining low overhead during node addition or removal.
+
+### Core Concepts / How it Works
+
+Consistent hashing addresses the challenge of dynamically adding, removing, or balancing loads among servers. Traditional hash-based partitioning techniques can cause massive data redistribution when a server joins or leaves the system due to their reliance on static keyspace divisions. Consistent hashing overcomes this by creating a virtual ring where nodes are mapped onto an interval [0, N), often visualized as a circular array of size N (commonly 2^32). Each node is assigned multiple points in this space through hashing the server's identifier to get its position on the circle. When assigning data to a node or finding which node should manage a given piece of data, we use a similar hash function applied to the key of that data item and then traverse clockwise around the ring from that point until we reach the first node's assigned position.
+
+This design ensures that only keys falling within the range affected by the addition/removal of nodes need redistribution. For instance, if a new server is added, it will take over part of the hash space formerly managed by other servers without requiring data to be moved between every pair of nodes in the system. Consequently, consistent hashing significantly reduces the overhead associated with rehashing after topology changes.
+
+### When to Use It
+
+Consistent hashing is particularly advantageous in scenarios where:
+
+1. **Dynamic Scaling**: Systems that require frequent scaling up or down due to varying workloads benefit from minimal disruption during such adjustments.
+2. **Distributed Caching**: Cache systems implementing distributed stores need to distribute cache keys across multiple servers efficiently and handle additions/removals gracefully.
+3. **Load Balancing**: Load balancers can distribute requests more evenly by using consistent hashing, ensuring that each node handles a roughly equal share of traffic without the need for constant reconfiguration.
+
+### Trade-offs and Limitations
+
+While consistent hashing offers significant advantages in handling dynamic environments, it also comes with several trade-offs:
+
+1. **Suboptimal Load Balancing**: If nodes are not uniformly distributed across the hash space, certain parts may experience higher loads than others. Strategies such as adding more virtual positions or implementing weighted distributions can mitigate this issue.
+2. **Bandwidth Overhead for Virtual Nodes**: Each node typically maps to multiple points (virtual nodes) in the hash ring to ensure even distribution. This requires additional storage and computation resources.
+3. **Cold Start Issues**: During initial deployments or after significant changes, there might be an uneven load distribution until nodes are fully distributed across the space.
+4. **Implementation Complexity**: Properly implementing consistent hashing with good performance characteristics involves complex algorithms and careful management of hash functions to ensure data locality and minimize churn.
+
+### Key Takeaways
+
+- **Virtual Nodes Enable Balance**: Utilizing virtual nodes helps in achieving a more balanced load distribution by increasing the density of points on the ring for each physical node.
+- **Key Selection Matters**: The choice of key selection strategy significantly impacts performance; keys should be carefully chosen to ensure even distribution and ease of rehashing.
+- **Balancing Act Between Redundancy and Overhead**: Deciding how many virtual nodes per real server is critical. Too few can lead to uneven load distribution, while too many increases overhead.
+- **Hash Functions Influence Performance**: The choice of hash function affects the performance and effectiveness of consistent hashing; a good hash function should distribute keys uniformly across the ring.
+- **Consider Alternative Strategies for Special Cases**: For certain applications or environments where consistent hashing might introduce unnecessary complexity or overhead, alternatives such as partitioning strategies based on key ranges can offer simpler yet effective solutions.

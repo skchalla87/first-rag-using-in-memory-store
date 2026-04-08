@@ -1,0 +1,43 @@
+Service Level Objectives (SLOs), Service Level Agreements (SLAs), and Service Level Indicators (SLIs) are critical tools in managing and guaranteeing the performance of distributed systems. SLOs define quantitative targets for system reliability, availability, and performance; SLAs outline the contractual agreements between service providers and customers regarding these targets; while SLIs provide measurable data that is used to track whether these objectives are being met.
+
+### Core Concepts / How It Works
+
+**Service Level Indicators (SLI):** These are concrete measurements of a system's operational characteristics. For example, an SLI might measure the HTTP response time for requests made to a server or the number of successful transactions per second within a payment processing service. Each SLI should be designed with specific metrics in mind that accurately reflect the health and performance of a system.
+
+**Service Level Objectives (SLO):** SLOs are targets set against one or more SLIs, defining what level of service is expected from a system over a given period. For example, an SLO might specify that 95% of HTTP requests should be served within 200 milliseconds during peak hours. SLOs provide a clear, quantitative basis for evaluating system performance and reliability.
+
+**Service Level Agreements (SLA):** SLAs formalize the relationship between service providers and their customers, detailing the SLOs that will be met as part of a contractual agreement. An SLA might include provisions such as penalties or compensation if an SLO is not met. This formal commitment ensures accountability and helps manage customer expectations.
+
+### When to Use It
+
+- **When Defining Quality of Service:** Use SLOs, SLAs, and SLIs to define the expected quality of service for critical systems in a distributed environment. This is particularly important for mission-critical applications where downtime or performance degradation could have significant financial or reputational consequences.
+  
+- **For Customer Agreements:** When negotiating with customers about service guarantees, using SLOs and SLAs ensures both parties are aligned on what constitutes acceptable system performance and availability.
+
+- **In Service Design and Development:** Incorporating these concepts early in the design phase helps ensure that systems are built to meet specific performance targets from day one. This can also guide resource allocation, testing strategies, and capacity planning.
+  
+- **For Internal Service Level Management:** Within an organization, using SLOs and SLAs helps set clear expectations between different teams or departments providing interdependent services.
+
+### Trade-offs and Limitations
+
+- **Complexity in Implementation:** Setting up meaningful SLIs can be complex due to the need for accurate metrics that reflect real-world performance. Additionally, crafting effective SLOs requires deep understanding of system behavior under various load conditions.
+  
+- **Performance vs Cost Trade-off:** Tight SLOs might require significant resources (e.g., more servers or faster hardware) to meet, which could increase operational costs significantly.
+
+- **Risk of Overconfidence:** Relying too heavily on quantitative metrics can sometimes overlook other critical factors such as system resilience under unexpected conditions or user experience nuances that don't easily translate into SLIs.
+
+- **Difficult Customer Negotiations:** Defining realistic yet ambitious SLOs and negotiating corresponding penalties in an SLA might be challenging, especially when customer expectations are high but the technical feasibility is uncertain.
+  
+- **Data Collection Challenges:** Collecting accurate data to measure SLIs can be difficult due to various reasons like distributed system complexity or lack of proper monitoring tools.
+
+### Key Takeaways
+
+- **Quantitative Metrics Matter:** Accurately defining and measuring performance through quantitative metrics (SLIs) is crucial for setting realistic and measurable SLOs.
+  
+- **Contracts Need Careful Management:** SLAs should be carefully crafted to balance customer expectations with technical feasibility while also including provisions that protect both the service provider and consumer from unforeseen circumstances.
+
+- **Continuous Monitoring and Adjustment:** Service levels are not static; they must evolve as systems scale, technology advances, and business requirements change. Continuous monitoring of SLIs against SLOs is essential for maintaining high-quality services.
+  
+- **Internal vs External Use Cases:** While internal SLOs guide development and operations teams to maintain quality standards, external SLAs formalize commitments made to customers, ensuring mutual understanding and accountability.
+
+- **Resilience Planning:** Ensuring resilience involves more than just meeting SLOs; it requires planning for system failures, scaling strategies during peak loads, and implementing redundancy measures.

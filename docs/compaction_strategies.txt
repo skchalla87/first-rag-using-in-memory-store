@@ -1,0 +1,39 @@
+Compaction strategies in distributed systems are optimization techniques designed to manage the efficient storage and retrieval of data by consolidating multiple smaller logical units into fewer larger ones, thereby reducing redundancy and improving read performance. These strategies are particularly crucial in environments where write-heavy workloads generate a large number of small files or segments over time, leading to inefficiencies in terms of disk space usage and query execution speed.
+
+### Core Concepts / How It Works
+Compaction strategies operate on the principle that over time, distributed systems often accumulate redundant data due to frequent writes and updates. This redundancy can lead to several issues including increased storage costs and slower read performance because of the need to traverse numerous small segments or files rather than fewer consolidated ones. Compaction addresses these challenges by periodically merging smaller logical units (such as SSTables in Cassandra, MemTables in Redis, or individual log entries in Kafka) into larger more efficient units.
+
+The process involves selecting a set of these units based on certain criteria and then consolidating them through either minor or major compactions:
+- **Minor Compaction:** This type is typically triggered automatically by the system to maintain performance within predefined limits. It usually merges smaller segments that are adjacent in terms of key ranges, thus ensuring that the overall structure remains manageable without significantly altering the dataset.
+  
+- **Major Compaction:** Also known as 'full compaction' or 'cleanup,' this approach involves merging all files across a wide range, often the entire storage space for a particular node. While more resource-intensive and disruptive, major compactions can be essential to reclaim significant amounts of disk space.
+
+Compaction strategies are governed by configurable settings that define when, how frequently, and which segments should undergo consolidation. The exact parameters will vary based on the specific distributed system being used but typically include thresholds for file size, number of files, or time intervals since last compaction.
+
+### When to Use It
+1. **High Write Workloads:** In systems where data is constantly being updated or inserted (e.g., real-time analytics, IoT telemetry), minor compactions are essential to prevent excessive fragmentation and maintain read performance.
+   
+2. **Space Management:** For environments constrained by disk space, major compaction can help reclaim unused storage by removing older versions of files that are no longer necessary.
+
+3. **Read-Heavy Systems:** In scenarios where read operations far outweigh writes (e.g., content delivery networks), optimizing for fewer and larger data segments through compaction can significantly improve query performance.
+
+4. **Legacy Data Cleanup:** Compactions enable the periodic cleanup of old or obsolete data, which is particularly useful in distributed databases that store historical records but need to keep current datasets performant and lightweight.
+
+5. **Cluster Stability Under Stress:** During periods of high load, ensuring compacted state can stabilize cluster operations by reducing the overhead associated with handling numerous small files during read requests.
+
+### Trade-offs and Limitations
+- **Increased CPU Load and I/O Traffic:** Compaction requires additional computational resources to process data merging operations. This increased activity may temporarily slow down other critical processes if not managed properly.
+  
+- **Temporary Data Inconsistency:** During compactions, especially major ones, there might be a brief period when the database is in an inconsistent state due to ongoing merges and updates.
+
+- **Complexity in Configuration:** Effective use of compaction strategies demands a nuanced understanding of both system architecture and operational requirements. Incorrect configurations can lead to underutilized storage or degraded performance.
+
+- **Performance Overhead During Compactions:** While long-term benefits are clear, the immediate effect of initiating a compaction is often increased latency and reduced throughput as the system works on data reorganization.
+  
+- **Dependency on Disk Space:** Efficient use of space through major compaction relies heavily on adequate free space. In constrained environments, this may necessitate additional storage management strategies.
+
+### Key Takeaways
+- Compaction strategies are indispensable for maintaining performance and efficiency in write-heavy distributed systems but must be carefully configured to balance between read/write performance and resource consumption.
+- Minor compactions offer a continuous means of managing fragmentation without significant overhead, while major compactions provide periodic opportunities for large-scale optimization and cleanup.
+- The choice between minor and major compaction depends heavily on the specific operational needs such as real-time response requirements versus long-term storage efficiency considerations.
+- Configuring appropriate thresholds and triggers is crucial to leveraging compaction's benefits effectively; misuse can lead to performance bottlenecks or unnecessary resource consumption.

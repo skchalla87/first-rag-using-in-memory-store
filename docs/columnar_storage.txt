@@ -1,0 +1,33 @@
+Columnar storage is a data storage format where each column of a database table is stored as a separate file or structure, optimized for efficient read and query operations on specific columns rather than entire rows. This method contrasts row-based storage by providing faster access to individual pieces of data across many records, which can significantly improve performance in scenarios with high-volume queries.
+
+### Core Concepts / How It Works
+
+Columnar storage operates under a few key principles:
+- **Column-oriented organization**: Each column is stored separately from other columns, often within its own file or structure. This means that each piece of data has an associated metadata describing it (e.g., type and format).
+- **Compression techniques**: Data in a columnar format can be compressed more efficiently because similar types of values are grouped together; thus, patterns emerge which allow for better compression algorithms to be applied.
+- **Query optimization**: When a query is made that requests only certain columns from the dataset, the storage system only needs to read and process those specific columns. In contrast, row-oriented storage would have to scan entire rows containing irrelevant data before extracting the necessary information.
+- **Parallel processing capabilities**: Because each column can be accessed independently, queries on large datasets can be parallelized across different cores or even distributed over a network. Each core can handle one or more columns simultaneously, which greatly enhances the speed and efficiency of operations like aggregation functions (SUM, AVG) and analytics.
+
+### When to Use It
+
+Columnar storage is particularly advantageous in the following scenarios:
+- **Analytics workloads**: Applications that require complex analytical queries on large datasets benefit significantly from columnar storage due to its ability to quickly retrieve specific data types.
+- **Data warehousing**: Systems designed for read-heavy environments, such as data warehouses, can optimize disk I/O by minimizing the amount of data read during query processing.
+- **Time-series databases**: These systems store time-stamped events in order and often need to perform range queries on a subset of columns. Columnar storage allows efficient retrieval of historical data based on date ranges without scanning unnecessary records.
+- **Machine learning and AI applications**: When training models using large datasets, the ability to efficiently filter through vast quantities of numerical or categorical data benefits from columnar storage's optimized read patterns.
+
+### Trade-offs and Limitations
+
+Despite its advantages, columnar storage has several limitations:
+- **Write performance degradation**: Inserting new rows into a column-oriented database can be slower than in row-based systems because each value must be appended to the correct file for that column. This is exacerbated by the need to maintain indexes or other metadata structures.
+- **Complexity of updates**: Updating individual fields within columns may require shifting many values around, leading to increased overhead compared to updating entire rows at once as seen in traditional row-based databases.
+- **Memory footprint during reads**: When a query needs data from across multiple rows but only specific columns, the system must load each column's file into memory. This can lead to higher memory usage when dealing with wide tables where many columns are involved.
+- **Inefficient for OLTP (Online Transaction Processing)**: Workloads that demand high-frequency updates and inserts, such as those common in transactional applications, find row-based storage more suitable due to its simplicity and efficiency in handling these types of operations.
+
+### Key Takeaways
+
+- **Columnar Storage is optimized for read-heavy analytics workloads**, providing faster access times for specific columns compared to scanning full rows.
+- **Efficient compression** is a key benefit since similar data types are grouped, allowing more effective use of space-saving algorithms.
+- **Parallel processing capabilities** enhance the scalability and performance of queries on large datasets by distributing load across multiple cores or machines.
+- **Write operations can be slower**, making columnar storage less ideal for environments requiring frequent updates or inserts, such as OLTP systems.
+- **Memory usage during reads may increase**, especially in wide tables with many columns accessed simultaneously due to the need to load multiple files into memory.

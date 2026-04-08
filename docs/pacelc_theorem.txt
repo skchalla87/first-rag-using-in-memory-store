@@ -1,0 +1,41 @@
+The PACELC theorem, proposed by Daniel Abadi in 2012, extends the CAP theorem by arguing that even in the absence of network partitions, distributed systems must trade off between latency (L) and consistency (C). The full trade-off is: if there is a Partition (P), choose between Availability (A) and Consistency (C); Else (E), choose between Latency (L) and Consistency (C).
+
+### Core Concepts / How It Works
+
+CAP theorem only addresses behavior during network partitions, which are relatively rare. PACELC points out that the more common and operationally significant trade-off happens during normal operation: to achieve strong consistency, a system must coordinate writes across replicas, which adds latency. To achieve low latency, it must allow reads/writes to proceed without full coordination, sacrificing consistency.
+
+**The four quadrants:**
+- **PA/EL** (Partition → Availability, Else → Low Latency): Dynamo-style systems. Prioritize availability during partitions and low latency during normal operation. Examples: Cassandra, DynamoDB, Riak. These are eventually consistent by default.
+- **PC/EC** (Partition → Consistency, Else → Consistency): Prioritize consistency always, accepting higher latency. Examples: HBase, Zookeeper, VoltDB.
+- **PA/EC**: Rare — available during partitions but consistent otherwise.
+- **PC/EL**: Rare — consistent during partitions but low latency otherwise.
+
+**Why latency matters more than partitions in practice:**
+Network partitions happen minutes per year. Latency vs consistency is a trade-off made on *every single request*. A system that achieves strong consistency must perform synchronous replication (at minimum a quorum write) before acknowledging a write — this directly adds round-trip latency proportional to replication distance.
+
+**Consistency spectrum:**
+- Strong consistency (linearizability): Every read sees the most recent write. Requires synchronous coordination.
+- Eventual consistency: Replicas converge over time. Reads may see stale data.
+- Session consistency, monotonic reads, read-your-writes: intermediate models that limit staleness for individual clients without full coordination cost.
+
+### When to Use It
+
+Use PACELC as a framework when selecting or designing a database for a specific workload:
+- **Latency-sensitive, high-throughput workloads** (shopping carts, social feeds, leaderboards): favor PA/EL systems like Cassandra or DynamoDB. Accept eventual consistency.
+- **Financial transactions, inventory, seat booking**: favor PC/EC systems like Spanner, CockroachDB, or Zookeeper-backed stores. Pay the latency cost.
+- **Geo-distributed writes**: the EL vs EC trade-off becomes stark — cross-region synchronous replication adds 50–200ms per write; async replication risks divergence.
+
+### Trade-offs and Limitations
+
+- **PACELC oversimplifies**: Real systems are tunable. Cassandra allows configuring consistency per query (ONE, QUORUM, ALL). The model treats systems as fixed points when they are spectrums.
+- **Latency is not uniform**: EL trade-off depends heavily on deployment topology. A single-region Postgres cluster has negligible replication latency; a multi-region cluster does not.
+- **No guidance on conflict resolution**: PACELC identifies the trade-off but doesn't prescribe how to handle diverged replicas (last-write-wins, CRDTs, vector clocks, etc.).
+- **Partition tolerance is binary in the model**: In practice, partial partitions (slow networks, packet loss) create gray areas CAP and PACELC don't fully capture.
+
+### Key Takeaways
+
+- PACELC extends CAP: the real daily trade-off in distributed systems is latency vs consistency, not just availability vs consistency during rare partitions.
+- Cassandra and DynamoDB are PA/EL — they sacrifice consistency for availability and low latency by default.
+- HBase and Zookeeper are PC/EC — they sacrifice latency for consistency always.
+- When designing a system, ask: "What is the cost of serving stale data?" vs "What is the cost of added latency?" — that answer determines your position on the EL/EC axis.
+- Most production systems are tunable; PACELC describes defaults and pressure points, not hard constraints.

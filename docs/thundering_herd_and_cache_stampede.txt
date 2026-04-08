@@ -1,0 +1,38 @@
+A thundering herd or cache stampede occurs in distributed systems when a large number of clients simultaneously request the same resource after its cache expires, leading to an overload on backend services and potentially causing significant performance degradation. This phenomenon is exacerbated by the sudden surge in traffic that can overwhelm servers and result in increased latency, poor user experience, and even service failures.
+
+### Core Concepts / How It Works
+
+Cache stampedes typically arise due to the way distributed caches manage resource lifetimes and eviction policies. When a frequently accessed resource’s cached copy expires, all clients attempting to access this item at once send requests to the backend servers for an updated version. These simultaneous requests can overwhelm the server's capacity, leading to delays or even failures in processing individual client requests.
+
+Several factors contribute to the severity of cache stampedes:
+- **Cache Expiration**: The timing of when a cached entry is invalidated and must be re-fetched from the origin.
+- **Concurrency Control**: The mechanisms for ensuring that multiple clients do not simultaneously attempt to fetch an updated resource.
+- **Load Balancing**: How well distributed systems can manage sudden surges in request volume without overloading individual components.
+
+To mitigate these issues, engineers implement various strategies such as:
+- Cache invalidation and re-population techniques (e.g., cache warming).
+- Use of distributed locks or semaphores to serialize the process of refetching cached items.
+- Implementing circuit breaker patterns that temporarily block requests if a threshold is exceeded.
+- Leveraging probabilistic caching mechanisms like Bloom filters to reduce the likelihood of repeated fetches.
+
+### When to Use It
+
+While cache stampedes are typically seen as undesirable and mitigating them is crucial, understanding when such scenarios might arise can help engineers design more resilient systems. Key use cases include:
+1. **Highly Contended Resources**: In distributed applications where a small set of frequently accessed resources experiences high contention from numerous clients.
+2. **Periodic Cache Expirations**: Systems with scheduled cache invalidation periods (e.g., nightly updates) that can lead to simultaneous requests right after the cache expires.
+3. **Resource Intensive Backend Operations**: When backend services take significant time and computational power to generate cached content, leading to delays in response times if multiple clients are requesting simultaneously.
+
+### Trade-offs and Limitations
+
+1. **Complexity of Implementation**: Mitigating cache stampedes often requires complex coordination between different parts of the system, increasing overall architectural complexity.
+2. **Performance Overhead**: Implementing mechanisms like distributed locks or semaphores can introduce additional latency and overhead in processing requests.
+3. **Scalability Challenges**: While these techniques help manage sudden surges, they may not scale infinitely well under extremely high traffic conditions without further optimization.
+4. **Inconsistent User Experiences**: Despite mitigation efforts, there might still be temporary inconsistencies in user experiences due to the inherent nature of cache invalidation and re-population processes.
+
+### Key Takeaways
+
+- **Implement Granular Cache Policies**: Tailor cache expiration strategies based on resource usage patterns to minimize sudden spikes.
+- **Prioritize Probabilistic Caching Mechanisms**: Use techniques like Bloom filters or other probabilistic data structures that can reduce the likelihood of repeated fetches.
+- **Deploy Circuit Breakers Strategically**: Utilize circuit breaker designs not only for fault tolerance but also as a proactive measure against cache stampedes by temporarily blocking requests during high load periods.
+- **Leverage Distributed Locks with Care**: While essential in preventing concurrent refetching, distributed locks should be used judiciously to avoid unnecessary overhead and potential deadlocks.
+- **Monitor and Optimize Continuously**: Regularly monitor system performance metrics related to cache invalidation and request patterns; optimize your strategies based on empirical data rather than assumptions.

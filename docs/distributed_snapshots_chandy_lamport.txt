@@ -1,0 +1,41 @@
+Distributed Snapshots Chandy Lamport is a distributed algorithm designed to capture global state information in a network of processes without requiring centralized control or coordination. It enables each process to independently and concurrently gather snapshot data that can be used for various purposes such as debugging, monitoring, and system recovery.
+
+### Core Concepts / How it works
+
+The core idea behind Chandy Lamport's distributed snapshots is the concept of "local snapshots" – local state captures taken by individual processes, and then combined into a global snapshot. The algorithm achieves this through message passing between processes where each process maintains a list of its neighbors and sends messages to these neighbors during the snapshot creation phase.
+
+1. **Initialization**: A designated start node initiates the snapshot process.
+2. **Local Snapshot Creation**: Each process creates a local snapshot, which is essentially a record of all current state variables relevant for the snapshot.
+3. **Message Passing**: Processes send "request" messages to their neighbors indicating that they are initiating a snapshot operation and would like their neighbor's local snapshots upon completion.
+4. **Snapshot Propagation and Collection**:
+   - A process waits until it receives request messages from all its predecessors in the graph (i.e., nodes directly connected to it through message-passing links).
+   - Once this happens, the process collects these incoming requests along with its own snapshot information into a "merge" structure.
+5. **Completion**: When every node has collected data from its neighbors and combined them with its local state, the snapshot is complete for that node.
+
+The algorithm ensures correctness through the use of an event ordering mechanism based on timestamps or sequence numbers assigned to messages, ensuring that snapshots are not taken out-of-order relative to other events in the system. Additionally, Chandy Lamport's method avoids deadlock by allowing processes to proceed as soon as they have received all necessary requests from their immediate neighbors.
+
+### When to Use It
+
+Chandy Lamport's distributed snapshot technique is particularly useful in large-scale distributed systems where centralized mechanisms for state capture are impractical or undesirable due to scalability concerns. Some specific use cases include:
+
+1. **Debugging and Testing**: In complex, dynamic environments where debugging issues requires understanding the system-wide state at a given moment.
+2. **System Monitoring**: For real-time monitoring of application performance metrics across distributed nodes.
+3. **Consistency Verification**: Ensuring that all parts of a distributed database are in sync and contain consistent data.
+4. **Fault Tolerance**: Identifying faulty states or diagnosing why certain recovery mechanisms failed.
+
+### Trade-offs and Limitations
+
+While Chandy Lamport's algorithm is powerful, it comes with several trade-offs and limitations:
+
+1. **Communication Overhead**: The snapshot process can introduce significant network traffic due to the message-passing mechanism required for coordination.
+2. **Synchronization Challenges**: Ensuring that all processes take their snapshots at roughly the same time poses challenges, especially in highly dynamic networks where connections are constantly changing.
+3. **Complexity and Maintenance**: Implementing Chandy Lamport's algorithm correctly requires careful handling of edge cases and potential issues like message loss or delayed delivery.
+4. **Scalability Issues**: As system size increases, so does the complexity involved in coordinating snapshot operations across numerous nodes, potentially leading to performance bottlenecks.
+
+### Key Takeaways
+
+- **Decentralized Operation**: Chandy Lamport's algorithm is inherently decentralized, making it suitable for large-scale distributed systems.
+- **Asynchronous Design**: The method relies on asynchronous message-passing and does not require simultaneous action by all processes, reducing the likelihood of synchronization issues.
+- **Efficiency in Certain Scenarios**: When compared to other centralized approaches, Chandy Lamport can offer significant advantages in terms of scalability and resilience against single points of failure.
+- **Challenges in Implementation**: Despite its benefits, successful implementation requires careful consideration of network dynamics, message ordering, and potential for increased communication overhead.
+- **Suitability for Debugging and Monitoring**: Ideal for scenarios requiring a consistent view of system state at a specific point in time without disrupting normal operations.

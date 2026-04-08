@@ -1,0 +1,36 @@
+Byzantine Fault Tolerance (BFT) is a fault tolerance model designed to ensure consensus in distributed systems where some nodes may exhibit arbitrary and potentially malicious behavior, known as Byzantine faults. It allows a system to maintain consistency and reliability even when certain components fail unpredictably or send conflicting information.
+
+### Core Concepts / How it works
+
+Byzantine Fault Tolerance (BFT) is crucial for distributed systems that operate under the assumption of Byzantine failures—where faulty nodes might behave arbitrarily rather than simply failing to communicate. The core principle behind BFT is to achieve consensus among a set of nodes in such an environment, ensuring that all non-faulty nodes agree on the same state despite some being unreliable or malicious.
+
+The basic framework for BFT relies on algorithms designed to ensure agreement on distributed ledgers or shared states even when up to one-third of the nodes are Byzantine. One well-known example is Practical Byzantine Fault Tolerance (PBFT), which ensures that all non-faulty nodes eventually agree on an order of transactions in a ledger, despite potential misbehavior from some members.
+
+**Message Passing and Consensus:**
+- **View Change**: If a node detects that the primary node has failed to respond within a certain time frame, it initiates a view change protocol where all nodes collectively decide if there's been a failure.
+- **Request Propagation**: When a client requests an operation, this request is propagated across the network. Each replica (node) then broadcasts its proposal for handling the request to other replicas. 
+- **Two Phase Commitment**: Once enough replicas have agreed on the order of operations through rounds of message exchanges, a final round ensures that all replicas commit to the same sequence.
+- **Recovery Protocol**: In case of a detected failure or malicious behavior, nodes engage in a view change protocol to elect a new primary and validate previous transactions.
+
+### When to Use it
+
+BFT is particularly useful when reliability and security are paramount, such as in financial systems handling cryptocurrencies like Bitcoin (using Proof-of-Work for Byzantine fault tolerance) and Ethereum (moving towards PoS with BFT-like mechanisms). Other use cases include:
+1. **Distributed Ledgers**: Implementing blockchain technologies where consensus needs to be reached among nodes that may include malicious actors.
+2. **High Availability Systems**: Ensuring availability in distributed systems such as cloud storage services or database management systems, where data integrity must be maintained even under adversarial conditions.
+3. **Internet of Things (IoT)**: Managing IoT networks where devices might fail unpredictably or send incorrect data due to environmental factors.
+
+### Trade-offs and Limitations
+
+While Byzantine Fault Tolerance offers robustness against malicious behavior, it introduces several trade-offs:
+- **Latency**: BFT systems generally have higher latency compared to non-BFT systems because consensus requires multiple rounds of message exchanges.
+- **Scalability Issues**: PBFT and other BFT protocols typically scale poorly with the number of nodes. As more nodes are added, the time required for each round of agreement increases exponentially due to communication overhead.
+- **Resource Intensive**: Maintaining a high level of redundancy and robustness against Byzantine faults requires substantial computational resources, particularly in terms of memory and processing power.
+- **Algorithm Complexity**: Implementing BFT protocols often involves complex algorithms that can be challenging to understand and debug. The intricacies also make it harder to integrate with existing systems without significant re-engineering efforts.
+
+### Key Takeaways
+
+- **Reliability Against Malicious Nodes**: Byzantine Fault Tolerance ensures system reliability even when some nodes exhibit arbitrary or malicious behavior.
+- **Complex Consensus Mechanisms**: BFT relies on sophisticated consensus mechanisms involving rounds of message exchanges and validation checks.
+- **High Latency Trade-off**: While providing robust security, BFT introduces significant latency due to the need for multiple rounds of agreement among nodes.
+- **Scalability Challenges**: The complexity and communication overhead associated with BFT protocols can limit scalability as the number of participating nodes increases.
+- **Resource Intensive Nature**: Maintaining a fault-tolerant system against Byzantine faults requires substantial computational resources, making it less efficient compared to non-BFT systems.

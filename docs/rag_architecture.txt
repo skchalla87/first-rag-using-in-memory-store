@@ -1,0 +1,44 @@
+Retrieval-Augmented Generation (RAG) is an architecture pattern that enhances large language model (LLM) outputs by grounding them in external, up-to-date knowledge retrieved at inference time. Rather than relying solely on knowledge baked into model weights during training, RAG fetches relevant documents from a knowledge base and injects them into the prompt before the LLM generates a response.
+
+### Core Concepts / How It Works
+
+RAG combines two distinct phases:
+
+**Retrieval Phase:**
+- A user query is converted into a vector embedding using an embedding model (e.g., text-embedding-ada-002, sentence-transformers).
+- The embedding is used to perform a similarity search against a pre-indexed vector store (e.g., pgvector, Pinecone, Weaviate, Chroma) to find the top-k most semantically relevant document chunks.
+- Optionally, hybrid search combines dense vector search with sparse keyword search (BM25) and a cross-encoder re-ranker to improve retrieval precision.
+
+**Generation Phase:**
+- The retrieved chunks are injected into the LLM prompt as context, alongside the original user query.
+- The LLM (e.g., GPT-4, Claude, Llama) generates a response grounded in the retrieved content rather than hallucinating from parametric memory alone.
+
+**Indexing Pipeline (offline):**
+- Source documents are chunked (fixed-size, sentence-aware, or semantic chunking), embedded, and stored in the vector store.
+- Metadata (source, date, section) is stored alongside embeddings to enable filtered retrieval.
+
+**Key components:** document loader → chunker → embedding model → vector store → retriever → LLM.
+
+### When to Use It
+
+- **Knowledge-intensive Q&A:** Customer support bots, internal knowledge bases, documentation search — any domain where the LLM's training data is stale or absent.
+- **Reducing hallucinations:** When factual grounding is critical (legal, medical, financial), RAG limits the model to responding from retrieved evidence.
+- **Frequently updated data:** Product catalogs, news feeds, or any corpus that changes faster than model fine-tuning cycles.
+- **Cost-sensitive fine-tuning alternatives:** RAG is significantly cheaper than fine-tuning for knowledge injection; fine-tuning is better for teaching style or behavior.
+
+### Trade-offs and Limitations
+
+- **Retrieval quality is the ceiling:** If the retriever fails to surface the right chunks, the LLM cannot compensate. Garbage in, garbage out.
+- **Chunk boundary sensitivity:** Poorly chunked documents lose context across boundaries. A sentence split mid-concept can render a chunk useless.
+- **Context window limits:** Injecting many long chunks into the prompt consumes context window budget, leaving less room for the model to reason.
+- **Latency overhead:** Each query requires an embedding call + vector search + LLM call, adding 100–500ms latency over a plain LLM call.
+- **Multi-hop reasoning:** RAG struggles with questions requiring information spread across multiple unrelated documents — a single retrieval pass may not surface all needed context.
+- **No reasoning over structure:** RAG retrieves text; it cannot natively reason over tables, graphs, or relational data without additional processing.
+
+### Key Takeaways
+
+- RAG separates knowledge storage (vector index) from reasoning (LLM), making knowledge updates cheap — re-index documents, no model retraining needed.
+- Retrieval quality (chunking strategy, embedding model, re-ranking) matters more than LLM choice in most RAG systems.
+- Hybrid search (dense + sparse + re-ranker) consistently outperforms pure vector search for production use cases.
+- Evaluate RAG pipelines end-to-end: measure retrieval recall@k separately from generation faithfulness — they fail independently.
+- RAG and fine-tuning are complementary: RAG for knowledge, fine-tuning for behavior and output format.

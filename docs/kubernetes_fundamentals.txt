@@ -1,0 +1,49 @@
+Kubernetes is an open-source platform designed to automate deploying, scaling, and operating application containers across multiple hosts. It provides a framework for managing containerized services in production environments at scale by orchestrating their deployment and lifecycle management.
+
+### Core Concepts / How it works
+
+At its core, Kubernetes employs a declarative API to define the desired state of an application, enabling developers and operators to focus on what they want applications to do rather than how to achieve it. The platform abstracts underlying infrastructure into logical entities known as _pods_, which are groups of containers that share network namespaces and storage volumes. Pods can be managed in a scalable manner using higher-level constructs called _deployments_ and _stateful sets_, allowing for rolling updates, rollbacks, and automatic scaling based on various metrics such as CPU utilization or custom application-specific data points.
+
+#### Key Components
+
+- **API Server**: Acts as the front-end service that exposes REST APIs to interact with Kubernetes objects.
+- **Etcd Database**: A distributed key-value store used by Kubernetes to maintain all cluster state information persistently across multiple nodes.
+- **Kube Controller Manager (Controller)**: Houses core control loops for maintaining desired state of various objects like Deployments, DaemonSets, etc., ensuring applications are running as intended according to their specifications.
+- **Scheduler**: Responsible for deciding which node a pod should be scheduled on based on resource availability and scheduling policies defined by users.
+- **Kubelet**: Runs on each node in the cluster, ensuring containers within pods are running properly. It communicates with the API server to receive updates about desired state and makes necessary adjustments to match it.
+
+#### Services & Networking
+
+Services define a logical set of pods and expose them using stable IP addresses and DNS names. A service can be exposed externally or internally depending on the application requirements. Kubernetes also leverages the CNI (Container Network Interface) standard to support various networking plugins, enabling advanced features like pod-to-pod communication across nodes without NAT.
+
+#### ConfigMaps & Secrets
+
+ConfigMaps and secrets are mechanisms for storing configuration data outside of container images, making them more flexible and secure. This allows dynamic updates to configurations at runtime without rebuilding or redeploying containers.
+
+### When to use it (use cases)
+
+Kubernetes excels in scenarios requiring high availability, scalability, and efficient resource utilization. It is particularly beneficial for:
+
+- **Microservices Architecture**: Environments where multiple small services need to communicate with each other efficiently.
+- **Development & Testing**: Provisioning consistent development environments and facilitating continuous integration/continuous deployment (CI/CD) workflows.
+- **Multi-Tenant Applications**: Supporting diverse applications running on shared infrastructure while maintaining isolation between tenants.
+- **Stateful Workloads**: Ensuring persistence of data for databases or stateful services, despite underlying node failures.
+
+### Trade-offs and limitations
+
+While Kubernetes offers significant benefits in managing complex deployments, it also introduces new challenges:
+
+- **Complexity & Learning Curve**: The platform's rich feature set comes with a steep learning curve, especially when dealing with intricate configurations.
+- **Operational Overhead**: Managing a Kubernetes cluster requires dedicated expertise to handle issues such as resource allocation, security policies, and monitoring/alerting systems.
+- **Limited Flexibility for Certain Scenarios**: Although highly configurable, some use cases may require more flexibility than what Kubernetes directly provides out of the box (e.g., very customized networking requirements).
+- **Overhead Costs**: The additional layers introduced by Kubernetes can increase resource consumption compared to bare-metal deployments or simpler container orchestrators.
+
+### Key Takeaways
+
+- **Declarative State Management**: Emphasize defining desired states declaratively rather than focusing on procedural steps.
+- **Pods as the Atomic Unit of Deployment**: Understand that pods are fundamental building blocks for higher-level constructs in Kubernetes.
+- **Automated Scaling & Replication**: Leverage built-in mechanisms to ensure applications can handle varying loads efficiently.
+- **Robust Security Model**: Utilize namespaces, RBAC (Role-Based Access Control), and secrets management effectively to secure your deployment environments.
+- **Monitoring and Logging Infrastructure**: Implement comprehensive monitoring and logging solutions early on to troubleshoot issues promptly and maintain system health.
+
+By mastering these fundamentals, engineers can unlock the full potential of Kubernetes for building resilient, scalable applications in modern cloud-native architectures.

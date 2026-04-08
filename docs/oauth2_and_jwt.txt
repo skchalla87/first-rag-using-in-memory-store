@@ -1,0 +1,71 @@
+OAuth2 and JWT are essential components in modern web applications for secure authentication and authorization processes. OAuth2 provides a framework for granting limited access to resources on behalf of an end-user without exposing their credentials, while JWT (JSON Web Tokens) is used as a compact means of securely transmitting information between parties as a JSON object.
+
+### Core Concepts / How It Works
+
+#### OAuth2
+OAuth2 operates through several core concepts and components:
+
+- **Authorization Server:** An entity responsible for issuing access tokens based on the client application’s credentials and the user's consent. This server enforces security policies, such as token expiration and scope validation.
+  
+- **Resource Owner (User):** The entity that owns the resource being accessed. In OAuth2, this is typically a human user who authorizes another party to use their resources by granting access through an authorization endpoint.
+
+- **Client Application:** An application requesting access from the Resource Owner to perform specific actions on behalf of the user. This application must be registered with and trusted by the Authorization Server.
+  
+- **Resource Server:** The service that hosts protected resources, such as API endpoints or databases, which requires authentication before providing data. It validates the token presented to it against its own security policies.
+
+The OAuth2 protocol includes several grant types, each designed for specific use cases:
+
+- **Authorization Code Grant Type:** Used in web applications where a client application needs access to protected resources on behalf of the user with long-term credentials.
+  
+- **Implicit Grant Type:** Often used in single-page applications (SPA) due to its simplicity. It does not require server-side code and provides immediate token exchange after authorization.
+
+- **Resource Owner Password Credentials Grant Type:** Typically used for legacy applications or mobile apps where the application can securely store user credentials, allowing direct access without an intermediate authorization step.
+  
+- **Client Credentials Grant Type:** Useful in machine-to-machine scenarios where a client does not represent a resource owner and requires no end-user interaction.
+
+#### JWT
+JSON Web Tokens (JWT) are self-contained tokens that contain claims as a JSON object. They can be used to secure information between two parties, typically the client application and a server:
+
+- **Token Structure:** A JWT consists of three parts separated by dots: Header, Payload, Signature.
+  
+  - **Header** contains metadata about the token type (JWT) and the algorithm used for signing.
+  
+  - **Payload** is where the claims are stored. Claims can be predefined or custom and include information such as user id, username, roles, expiry date, etc.
+
+- **Signature:** Generated using a secret key (HS256/HS384/HS512) or a public-private key pair (RS256/ES256).
+
+### When to Use It
+
+OAuth2 is ideal for scenarios where:
+
+- You need to provide limited access to resources on behalf of users without exposing their credentials.
+- Your application interacts with third-party APIs that require authentication and authorization using OAuth2 standards.
+- Implementing secure, stateless, token-based sessions in web applications.
+
+JWT can be employed when:
+
+- Securely transmitting information between parties is necessary. For instance, exchanging data in a REST API environment.
+- You need to maintain user session state across multiple services or microservices without a centralized session store (statelessness).
+- Implementing single sign-on (SSO) solutions where tokens are used to authenticate and authorize users across different applications.
+
+### Trade-offs and Limitations
+
+OAuth2:
+
+- **Complexity:** Setting up an OAuth2 flow can be complex, especially for non-expert developers. Misconfigurations in client registration or scope validation can lead to security vulnerabilities.
+  
+- **Token Management:** Managing tokens securely is crucial but challenging; revoking tokens after they have been issued requires a robust token management system.
+
+JWT:
+
+- **Lack of Statefulness:** JWTs are stateless, meaning each request must contain all necessary information (token) and the server cannot hold session data. This can lead to performance overhead when handling large numbers of users.
+  
+- **Security Risks:** If not properly secured or if sensitive claims are included in the token, they could be intercepted by unauthorized parties.
+
+### Key Takeaways
+
+- OAuth2 provides a flexible framework for secure resource access through different grant types, catering to various client application needs (web apps, mobile apps, etc.).
+  
+- JWT offers a simple yet powerful mechanism for securely transmitting information between parties, enabling stateless sessions and enhancing security in distributed systems.
+  
+- Despite their benefits, both OAuth2 and JWT come with trade-offs that require careful consideration and implementation of robust security practices to mitigate risks such as token management challenges and statelessness issues.

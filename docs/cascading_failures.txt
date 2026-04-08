@@ -1,0 +1,53 @@
+Cascading failures occur in distributed systems when an initial failure causes a chain reaction that leads to additional failures throughout the system. This can happen due to dependencies between components, leading to a domino effect where one part of the system failing triggers subsequent failures elsewhere.
+
+### Core Concepts / How It Works
+
+A cascading failure typically begins with a single point of failure, often an overloaded component or a hardware malfunction. Once this initial failure occurs, it can trigger secondary and tertiary failures through various mechanisms:
+
+1. **Overloaded Dependencies:** If one service is down due to high traffic or resource exhaustion, dependent services may start consuming excessive resources trying to compensate, eventually leading to their own overload and failure.
+
+2. **Resource Leaks:** When a system component leaks resources (e.g., open sockets or database connections), it can cause other components sharing the same resource pool to fail as they run out of available resources.
+
+3. **Propagation through Dependencies:** In systems with tight coupling, failures in one part of the system can spread quickly due to direct dependencies. For example, if a service responsible for processing payment requests fails, all services that rely on it may become unresponsive until the payment service recovers or is replaced by a backup.
+
+4. **Communication Breakdowns:** If communication between components is severed due to network issues or message loss, dependent systems might fail because they are unable to synchronize their state correctly with other parts of the system.
+
+### When to Use It (Use Cases)
+
+Cascading failures aren't something you intentionally "use," but understanding and preventing them is crucial in designing robust distributed systems. Here are scenarios where considering cascading failures is critical:
+
+1. **Highly Coupled Systems:** In tightly coupled architectures, a single point of failure can quickly spread to other components due to direct dependencies or shared resources.
+
+2. **Stateful Services with Complex Interactions:** When services maintain state and interact frequently with one another, failures in maintaining this state (e.g., database connection issues) can propagate through the system.
+
+3. **Scalable Systems Under High Load:** As load increases, systems may hit resource limits leading to overload conditions that cause service failures and potentially trigger cascading effects across other services relying on them.
+
+4. **Networked Applications with Latency Sensitivity:** In distributed applications where network latency plays a critical role in system performance, issues like packet loss or slow connections can lead to failure propagation due to timeouts or retries consuming more resources.
+
+5. **Systems with Multiple Layers of Abstraction and Intermediaries:** When multiple layers (e.g., API gateways, load balancers) are involved between the client and backend services, failures in intermediaries can cause service outages that ripple across other components.
+
+### Trade-offs and Limitations
+
+Understanding cascading failures comes with several trade-offs and limitations:
+
+1. **Complexity of Design:** Ensuring resilience against cascading failures often requires introducing additional complexity through mechanisms like circuit breakers, retries with exponential backoff, and resource isolation, which can make the system harder to design and maintain.
+
+2. **Performance Overhead:** Implementing safeguards against cascading failures may introduce performance overhead due to added latency from retry policies or increased load on monitoring systems.
+
+3. **False Positives in Monitoring:** Detecting actual cascading failures early is challenging; often, alert fatigue occurs when many alerts are triggered simultaneously during a failure event, making it hard to pinpoint the root cause quickly.
+
+4. **Resource Constraints:** Certain mitigations for cascading failures (like extensive logging or frequent health checks) can be resource-intensive, potentially exacerbating issues in already stressed systems.
+
+5. **Cost of Redundancy:** To prevent single points of failure that could lead to cascades, redundancy is essential but costly both in terms of hardware and operational overhead.
+
+### Key Takeaways
+
+- **Design for Failure:** Assume failures are inevitable and design components with failure tolerance from the outset.
+  
+- **Decouple Components:** Minimize tight coupling by designing systems where individual components can fail independently without causing widespread outages.
+  
+- **Implement Circuit Breakers:** Use circuit breaker patterns to isolate failing services and prevent them from affecting other parts of the system.
+  
+- **Monitor System Health Proactively:** Implement comprehensive monitoring and alerting mechanisms that allow for early detection and mitigation of issues before they escalate into full-scale failures.
+  
+- **Develop Recovery Strategies:** Design recovery strategies that include fallback options (like failover mechanisms) to minimize downtime when a failure does occur.

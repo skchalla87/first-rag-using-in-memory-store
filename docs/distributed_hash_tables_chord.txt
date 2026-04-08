@@ -1,0 +1,34 @@
+Distributed Hash Tables (DHTs) are decentralized distributed systems that map keys to values and provide efficient and scalable lookup mechanisms without relying on centralized servers. Chord is one of the earliest DHT protocols, designed as an overlay network where nodes form a virtual ring by connecting to each other in a peer-to-peer fashion based on their numerical identifiers (keys), enabling them to route queries efficiently.
+
+### Core Concepts / How It Works
+
+In a Chord system, every node and key is assigned a unique identifier (ID) using consistent hashing. These IDs are integers drawn from the keyspace \([0, 2^{m})\). Each node maintains a routing table with entries for its successor nodes in the virtual ring, as well as pointers to nearby nodes at specific distances. This allows each node to efficiently find and communicate with other nodes on the network.
+
+The Chord protocol operates based on several fundamental mechanisms:
+1. **Node Joining:** When a new node joins the network, it sends out messages to existing nodes requesting information about its position in the ring and the identity of its immediate successor.
+2. **Finger Tables:** Each node maintains a finger table that contains entries for nodes at increasing distances from itself. The \(i\)-th entry in the finger table stores the identifier of the closest node with an ID equal to or larger than \((id + 2^{i-1}) \mod 2^m\).
+3. **Lookups:** To locate a key, a node sends a query message to its immediate successor and iteratively routes it through the ring until reaching the correct destination. The routing decision is made using information stored in finger tables.
+4. **Stability and Maintenance:** Nodes periodically refresh their finger table entries by sending out queries to determine if there are closer nodes available. This helps keep the network robust against node failures or departures.
+
+### When to Use It
+
+Chord is particularly well-suited for environments where:
+- Scalability is paramount: Chord can handle large numbers of nodes and keys while maintaining consistent performance.
+- Decentralization is crucial: The absence of central authority makes it ideal for applications that require resilience against single points of failure or censorship.
+- Dynamic nature is a necessity: With its ability to dynamically adjust to changes in network topology, Chord supports environments where nodes frequently join or leave the system.
+- Efficient resource utilization: Its distributed architecture allows for efficient use of resources compared to centralized alternatives.
+
+### Trade-offs and Limitations
+
+Despite its advantages, Chord comes with certain trade-offs:
+1. **Complexity:** The overhead associated with maintaining finger tables and handling node churn can introduce complexity in implementation and operational aspects.
+2. **Routing Overhead:** Frequent routing table updates and lookups can result in higher network traffic compared to simpler centralized systems.
+3. **Latency Sensitivity:** In scenarios where latency is critical, the iterative nature of routing might lead to increased lookup times.
+4. **Scalability Challenges:** While Chord scales well with a small number of nodes, its performance degrades significantly as the size of the network increases due to overheads associated with maintaining finger tables and handling churn.
+
+### Key Takeaways
+
+- **Resilience through Decentralization:** By eliminating single points of failure, Chord ensures high availability even in dynamic environments.
+- **Efficient Lookup Mechanisms:** Through a clever use of consistent hashing and iterative routing based on finger tables, Chord provides fast and reliable key lookups.
+- **Flexibility for Dynamic Environments:** The protocol's ability to handle node join/leave events makes it suitable for rapidly changing network conditions without compromising performance.
+- **Trade-offs with Scalability and Latency:** While highly efficient in moderate-sized networks, the overhead of maintaining finger tables and dealing with churn can limit scalability and introduce latency challenges as network size grows.

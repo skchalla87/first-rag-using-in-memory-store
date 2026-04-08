@@ -1,0 +1,37 @@
+Linearizability is a strong consistency model that ensures operations on a shared object appear to have executed atomically and in a totally ordered sequence from the perspective of all observers, while serializability allows transactions to be executed concurrently but guarantees an outcome equivalent to some sequential execution.
+
+### Core Concepts / How it Works
+
+**Linearizability:**
+- Linearizability enforces that every operation on a shared object appears to happen instantaneously and in a total order. Any action performed by a client must have the effect of updating the state of the system, which is then observed immediately by subsequent actions. This model ensures strong consistency across all clients.
+- Internally, systems achieve linearizability through mechanisms such as distributed locks or vector clocks that prevent concurrent operations on shared data until a previous operation completes.
+
+**Serializability:**
+- Serializability allows multiple transactions to execute concurrently but guarantees that the final outcome is equivalent to some serial schedule of those transactions. A serializable system ensures that no two concurrent transactions can create an interleaving execution order that would be invalid if performed sequentially.
+- This model supports a broader range of concurrency control techniques like optimistic locking, multi-version concurrency control (MVCC), and snapshot isolation, which facilitate efficient handling of high transactional load without compromising the integrity of data.
+
+### When to Use It
+
+**Linearizability:**
+- Utilize linearizability when applications require strong consistency guarantees, such as in distributed databases where strict ordering of updates is crucial. Applications like stock trading systems or real-time collaboration tools can benefit from this model as it ensures that all participants see the same order of operations.
+- Linearizability is also essential in scenarios involving shared counters or incrementing/decrementing values, ensuring that increments and decrements are visible atomically across distributed nodes.
+
+**Serializability:**
+- Serializability is advantageous in environments dealing with high transaction volumes where minimizing blocking and maximizing throughput is critical. Applications like banking systems or e-commerce platforms can leverage serializability to efficiently manage concurrent transactions while maintaining data integrity.
+- Use cases include complex business workflows that involve multiple interdependent operations, requiring a level of consistency that allows some degree of concurrency but still ensures that the outcome mirrors what would occur in a sequential execution.
+
+### Trade-offs and Limitations
+
+**Linearizability:**
+- The primary trade-off with linearizability is performance. Ensuring every operation appears to be instantaneous can lead to higher latency, especially in highly distributed environments where coordinating across nodes introduces significant overhead.
+- Implementing linearizable systems often requires sophisticated concurrency control mechanisms, which can introduce complexity and operational challenges.
+
+**Serializability:**
+- While serializability provides a balance between consistency and performance by allowing some degree of concurrent execution, it may still suffer from limitations in handling complex transactional dependencies effectively. In scenarios with high contention or long-running transactions, serialization points can degrade performance.
+- Achieving true serializable outcomes under heavy concurrency requires sophisticated conflict detection and resolution mechanisms that might be resource-intensive.
+
+### Key Takeaways
+
+- **Linearizability** ensures strong consistency by presenting operations atomically in a total order visible to all participants. This model is ideal for applications requiring strict ordering guarantees but can introduce significant latency overhead.
+- **Serializability** offers a compromise between performance and consistency, allowing concurrent transactions while ensuring the final outcome matches some sequential execution sequence. It is well-suited for high transaction volume environments that need robust data integrity without sacrificing throughput.
+- Both models have their unique advantages and trade-offs; linearizability ensures strong consistency at the cost of potential higher latency and complexity in implementation, whereas serializability offers better scalability under concurrent workloads but requires careful management to avoid performance bottlenecks.

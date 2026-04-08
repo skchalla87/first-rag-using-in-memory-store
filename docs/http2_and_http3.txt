@@ -1,0 +1,26 @@
+HTTP/2 and HTTP/3 are evolutionary upgrades to the HTTP protocol designed primarily to address performance bottlenecks in web communication, offering significant improvements over their predecessor HTTP/1.1 by enabling multiplexed connections, header compression, and optimized connection management.
+
+### Core Concepts / How It Works
+
+**HTTP/2**: This version introduces binary framing at the network level, allowing for multiple requests to be sent simultaneously within a single TCP connection without blocking or waiting for one request to complete before sending another. HTTP/2 achieves this through multiplexing, which enables concurrent streams of data to flow over a single connection, effectively eliminating head-of-line blocking. Additionally, it uses header compression (HPACK) to reduce the overhead associated with repeated headers in multiple requests and responses. Server push is another feature allowing servers to send additional resources proactively before the client explicitly requests them.
+
+**HTTP/3**: Built on QUIC (Quick UDP Internet Connections), HTTP/3 represents a more radical change, moving from TCP to UDP as its transport layer protocol. This shift addresses inherent TCP limitations such as head-of-line blocking and connection timeouts by leveraging QUIC’s reliability features over an unreliable UDP base. QUIC provides encryption at the lowest level of the network stack (via TLS 1.3), which includes connection establishment and state synchronization, improving privacy and performance. QUIC also implements multiplexing similar to HTTP/2 but is designed from the ground up with congestion control and flow control integrated directly into the protocol.
+
+### When to Use It
+
+**HTTP/2**: Consider adopting HTTP/2 in scenarios where a web application needs to serve multiple static resources efficiently, such as images, CSS files, or JavaScript libraries. This protocol excels in environments where minimizing latency is critical due to its ability to handle concurrent requests and reduce the overhead of header data through compression.
+
+**HTTP/3**: Opt for HTTP/3 when deploying applications that require a highly resilient and low-latency connection experience, particularly under poor network conditions. Its use cases include real-time communication services (e.g., chat apps), video streaming platforms, and distributed systems where the benefits of QUIC’s lower-level encryption and congestion control are advantageous.
+
+### Trade-offs and Limitations
+
+**HTTP/2**: While HTTP/2 offers substantial performance improvements, it has some drawbacks. The protocol's reliance on TLS 1.3 for secure connections means that without proper configuration, it might introduce additional overhead compared to plaintext HTTP/1.1 traffic. Additionally, since browsers have historically used only one TCP connection per domain due to historical limitations of the web ecosystem (though this is mitigated by HTTP/2), server configurations need adjustments to fully utilize multiplexing capabilities.
+
+**HTTP/3**: The main trade-off with QUIC and HTTP/3 involves increased complexity in network diagnostics and firewall configuration. Because UDP packets can be lost or delayed more easily than TCP, monitoring and debugging of issues related to packet loss and retransmission require specialized tools and techniques. Furthermore, since QUIC encapsulates the transport layer within TLS 1.3, setting up a secure connection involves additional overhead compared to traditional HTTP/2 over TLS.
+
+### Key Takeaways
+- **Multiplexing**: Both HTTP/2 and HTTP/3 support multiplexed connections, which significantly reduces latency by allowing simultaneous data streams on one connection.
+- **Encryption at Lower Layers**: While HTTP/2 relies heavily on TLS 1.3 for secure communication, HTTP/3 uses QUIC's integrated encryption from the ground up, offering enhanced security and performance benefits.
+- **Optimization Challenges**: Implementing these protocols requires careful configuration to leverage their full potential, especially concerning header compression and server push in HTTP/2, as well as proper handling of UDP-based diagnostics for HTTP/3.
+- **Compatibility Considerations**: Browser and client support must be considered when implementing either protocol; compatibility with older systems may necessitate fallback strategies or additional configurations.
+- **Performance Improvements under Adverse Conditions**: QUIC’s inherent features in HTTP/3 make it particularly beneficial in environments with high packet loss or where traditional TCP connections struggle due to network conditions.

@@ -1,0 +1,39 @@
+In distributed systems, Split Brain refers to a scenario where network partitions cause different parts of the system to operate independently due to loss of communication between them, while Fencing Tokens are mechanisms designed to prevent nodes from making conflicting decisions and maintaining consistency in such scenarios.
+
+### Core concepts / how it works
+
+**Split Brain:** This condition arises when a distributed system experiences a network partition, leading to isolated clusters or groups of nodes that cannot communicate with each other. Each group believes itself to be the only active part of the system and may continue operations independently, including attempting leader elections, which can result in multiple leaders being elected simultaneously across different partitions. This situation is highly undesirable because it undermines consistency and availability guarantees provided by distributed systems like Apache ZooKeeper or consensus protocols such as Raft.
+
+**Fencing Tokens:** To mitigate Split Brain issues, fencing mechanisms are employed to ensure that only one cluster remains active after a partition heals. The concept of Fencing Tokens revolves around the idea of tokens being exchanged among nodes before they can make any critical decisions (like electing a new leader). A node will only proceed if it has the most recent token from another node or set of nodes, indicating its last-known good state in the network. If a partition occurs and two clusters try to operate independently, nodes within these clusters will not have tokens issued by nodes outside their partitions, preventing them from making conflicting decisions that could lead to data inconsistency.
+
+In practice, implementations vary but typically involve:
+- **Heartbeats:** Periodic messages sent between nodes to maintain awareness of each other's status and token exchanges.
+- **Token Storage Systems:** External services or internal mechanisms within the system (like a database) used for storing tokens securely across partitions.
+- **Graceful Degradation:** Allowing nodes in a partitioned group to operate at reduced capacity until communication is restored, while preventing them from making irreversible decisions without valid tokens.
+
+### When to use it
+
+Split Brain and Fencing Tokens are crucial mechanisms for maintaining consistency and integrity of state data in distributed systems. Key use cases include:
+
+- **Leader Election:** Ensuring that only one leader is elected across the entire system after network partitions heal.
+- **Consensus Protocols:** Enforcing rules such as Raft or Paxos to prevent conflicting updates during periods of instability due to network issues.
+- **Database Replication:** Maintaining consistent replication logs and preventing divergent states in replicated databases by ensuring only one master node is active at a time.
+- **Cloud-Scale Services:** Particularly important for cloud services like load balancers, where maintaining the integrity of routing decisions (which can be seen as leader elections) across potentially unstable networks is critical.
+
+### Trade-offs and limitations
+
+Implementing Split Brain avoidance strategies with Fencing Tokens comes with its own set of challenges:
+
+1. **Complexity**: The introduction of tokens and heartbeats adds to system complexity, requiring careful design and testing.
+2. **Latency Sensitivity:** Operations that require token validation can introduce additional latency, impacting performance.
+3. **Token Storage Reliability**: Ensuring the token storage system is highly available and fault-tolerant is crucial; otherwise, it becomes a single point of failure.
+4. **Recovery Time**: The duration required for partitions to heal and nodes to recover full functionality may be extended due to fencing mechanisms.
+5. **Configuration Complexity:** Fine-tuning parameters like heartbeat intervals can be challenging to optimize without causing unnecessary downtime or performance bottlenecks.
+
+### Key takeaways
+
+- **Prevent Split Brain Conditions:** Implementing fencing tokens helps prevent multiple leader elections or inconsistent state updates when network partitions occur.
+- **Heartbeats and Token Exchanges are Essential**: These mechanisms maintain node awareness, ensuring that only the most recent information is used to make decisions during recovery phases.
+- **External Systems for Token Storage Should be Reliable**: Ensuring high availability and fault tolerance of token storage systems is critical to overall system integrity.
+- **Latency Considerations:** Introducing token validation can affect performance; careful tuning is necessary to balance consistency with operational efficiency.
+- **Testing and Monitoring:** Comprehensive testing and active monitoring are required to detect and address any issues related to Split Brain scenarios and fencing mechanisms effectively.

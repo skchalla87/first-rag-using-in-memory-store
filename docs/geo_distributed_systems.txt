@@ -1,0 +1,51 @@
+Geo distributed systems are large-scale networked software architectures designed to support operations across multiple geographic locations (regions) to improve availability, performance, and resilience while ensuring data consistency and fault tolerance. These systems require careful management of latency, bandwidth constraints, synchronization issues, and potential network partitions.
+
+### Core Concepts / How It Works
+
+**1. Latency Management:**
+Latency is the primary challenge in geo distributed systems due to varying distances between regions. Techniques such as caching (memcached, Redis), CDN services (Akamai, Cloudflare), and database replication are employed to reduce latency by bringing data closer to users.
+
+**2. Data Synchronization:**
+Maintaining consistent state across multiple geographical locations is crucial but complex. Strategies like eventually-consistent databases (such as DynamoDB), strong consistency models with leader-based coordination (Raft/Paxos for consensus), and multi-master replication are used. Eventual consistency allows systems to diverge temporarily, resolving discrepancies through conflict resolution mechanisms.
+
+**3. Load Balancing:**
+Load balancers distribute traffic evenly across different regions based on performance metrics or geographical proximity of users to minimize latency and improve reliability. This often involves sophisticated algorithms that take into account not only the location but also the load conditions in real-time.
+
+**4. Data Partitioning:**
+Data is partitioned (sharded) across multiple geographic locations to reduce the volume of data each node needs to manage, improving performance. Sharding can be implemented through consistent hashing mechanisms or range-based sharding depending on data characteristics and access patterns.
+
+**5. Failover Mechanisms:**
+Geo distributed systems need robust failover strategies in case a region becomes unavailable due to network outages or disasters. Automated disaster recovery (DR) setups are critical, often involving cross-region replication of databases and application state to ensure minimal downtime and data loss.
+
+### When to Use It
+
+**1. Global User Base:**
+For applications targeting users across the globe where reducing latency is crucial for performance and user experience.
+   
+**2. High Availability Requirements:**
+Where availability is mission-critical, geo distributed systems provide redundancy through multiple geographic points of presence (PoPs).
+
+**3. Regulatory Compliance:**
+Certain regions have stringent data sovereignty laws requiring data to be stored within national borders. Geo distribution allows compliance with these regulations by replicating data locally.
+
+### Trade-offs and Limitations
+
+1. **Complexity:** Managing a geo distributed system is more complex than managing local systems due to the intricacies of network latency, synchronization issues, and multi-region deployments.
+   
+2. **Latency Impact:** Although designed to reduce latency for end-users, certain operations may still suffer from increased latency between regions unless optimized effectively.
+
+3. **Cost:** Geo distribution often involves higher operational costs compared to centralized setups, mainly due to the additional infrastructure required in multiple locations plus data transfer fees across regions.
+   
+4. **Data Consistency Challenges:** Ensuring strong consistency can be difficult and costly when replicating data across multiple geographic locations due to network latency and potential for split-brain scenarios.
+
+### Key Takeaways
+
+- Geo distributed systems are essential for handling global-scale applications that require high availability, low latency, and regulatory compliance.
+  
+- The choice of replication strategy (eventual vs. strong consistency) significantly impacts system design and performance trade-offs.
+
+- Latency management is key; techniques like CDN and database caching reduce the impact of long-distance communication between data centers.
+
+- Failover mechanisms are critical to ensure business continuity during regional outages or natural disasters.
+  
+- Data partitioning and load balancing strategies must be carefully designed to efficiently distribute workloads across regions while minimizing cross-region communication costs.

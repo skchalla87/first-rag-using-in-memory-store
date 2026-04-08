@@ -1,0 +1,60 @@
+Change Data Capture (CDC) is a technique used in distributed systems to efficiently and reliably capture changes made to data within a database or other storage system and propagate those changes to other systems, typically for replication, audit logging, or real-time analytics purposes. This mechanism allows for near-real-time updates without placing undue load on the source database.
+
+### Core Concepts / How it Works
+
+CDC operates by monitoring a database's transaction logs or binary logs (binlogs) for modifications made to data, such as insertions, deletions, and updates. The core components of CDC typically include:
+
+1. **Capture Layer**: This layer reads changes from the database transaction logs, parsing them into an intermediate format that can be easily processed by subsequent layers.
+2. **Transformation Layer**: This optional layer processes and enriches captured data if necessary before it is passed to the next layer. For example, adding timestamps or mapping column names between different systems.
+3. **Delivery Layer**: The final stage where captured changes are delivered to target systems in a format they can consume. Common delivery methods include message queues (e.g., Kafka), event streaming platforms, and REST APIs.
+
+To implement CDC effectively, you need to understand the specific mechanism used by your database system for tracking modifications:
+
+- **Transaction Logs**: A record of every transaction that occurs within an application, including those not committed.
+- **Binary Logs (Binlogs)**: These contain a stream of events that describe all changes made to data on a MySQL server. Unlike transaction logs, binlogs are designed explicitly for replication and recovery purposes.
+
+CDC can be implemented in various ways depending on the database type:
+
+- **Row-Level CDC**: Captures individual rows affected by transactions.
+- **Logical Log-Based CDC**: Parses SQL statements or logical logs from databases like Oracle to capture more granular changes.
+  
+### When to Use It (Use Cases)
+
+1. **Real-Time Data Synchronization**:
+   - **Application Integration**: For applications that rely on real-time data synchronization, such as customer relationship management (CRM) systems and marketing automation tools. CDC can ensure that both the CRM system and its connected applications have consistent data in near-real time.
+   
+2. **Data Warehousing and Analytics**:
+   - **ETL Pipelines**: Implementing CDC can improve ETL (Extract, Transform, Load) pipelines by reducing latency between data collection and analysis phases. This is crucial for time-sensitive business intelligence requirements like real-time analytics on sales performance or user activity metrics.
+   
+3. **Replication and Backup**:
+   - **Multi-Region Replication**: For distributed systems with multiple geographic regions, CDC facilitates the synchronization of databases across different locations to ensure data consistency and high availability.
+   - **Disaster Recovery (DR)**: By continuously replicating changes to a secondary location, CDC supports efficient disaster recovery strategies by providing up-to-date snapshots that can be used for quick failover.
+
+4. **Audit Logging**:
+   - **Compliance**: In heavily regulated industries such as finance and healthcare, maintaining an accurate audit trail of all data modifications is crucial. CDC helps in capturing every change made to a database, ensuring compliance with legal standards and internal policies.
+   
+### Trade-offs and Limitations
+
+1. **Performance Impact**:
+   - Reading transaction logs can introduce overhead on the source system, especially if there are large volumes of transactions or high-frequency updates. The performance impact needs careful monitoring and optimization strategies like offloading CDC processes to dedicated servers.
+   
+2. **Complexity**:
+   - Implementing and managing a robust CDC solution requires expertise in database internals and event-driven architectures. Misconfigurations can lead to data loss or inconsistencies, making thorough testing essential.
+   
+3. **Data Consistency Challenges**:
+   - Ensuring that the target systems receiving captured changes are consistent with the source system at all times is non-trivial, especially when dealing with complex transactional workloads involving distributed databases.
+
+4. **Scalability Issues**:
+   - As data volumes increase, scaling CDC processes to handle high throughput can become a challenge. Techniques like partitioning and parallel processing may be necessary to maintain performance.
+   
+### Key Takeaways
+
+- **Real-Time Data Synchronization**: Use CDC for applications requiring real-time data replication and synchronization across different systems or geographical regions.
+  
+- **Enhanced ETL Pipelines**: Leverage CDC to reduce latency in ETL pipelines, improving the freshness of analytics and business intelligence insights.
+  
+- **Audit Compliance**: Implement CDC to maintain an accurate audit trail of all database changes for compliance with regulatory requirements and internal policies.
+  
+- **Performance Considerations**: Be mindful of potential performance impacts on source systems when implementing CDC. Optimize configurations and offload processes as needed to manage these impacts effectively.
+
+- **Complexity Management**: Plan meticulously for the complexity associated with setting up and maintaining a robust CDC solution, ensuring thorough testing and monitoring to avoid inconsistencies or data loss.

@@ -587,7 +587,22 @@ See SESSIONS.md for detailed notes on what broke and what was learned in each se
 
 ### Known Limitations & Next Steps
 
-1. **MRR hard = 0.50** — cross-doc synthesis needs query expansion or multi-hop retrieval
-2. **Faithfulness is a proxy** — word overlap, not semantic grounding. An LLM-as-judge would be more accurate but costs a generation call per eval question
-3. **No API layer** — the system is a CLI loop. A FastAPI `/query` endpoint would make it deployable
-4. **Generation is the bottleneck** — ~5.5s for llama3.1 locally. Retrieval is ~0.9s. Switching to a faster local model (e.g. llama3.2:3b) or a cloud model would change the profile
+#### Retrieval gaps (current)
+
+- **q010 "failure strategies" — complete retrieval miss (precision/recall/MRR all 0).** The query "what strategies exist for handling failures?" is broad enough that the hybrid search returns retry patterns and job scheduling docs instead of `fault_tolerance`, `circuit_breaker`, `saga_pattern`. Root cause: vague natural-language queries don't align well with specific technical document names. Fix: query expansion — generate 2–3 sub-queries from the original and union their results before re-ranking.
+
+- **q018 "CQRS + event sourcing" — `cqrs.txt` never retrieved (MRR 0.5).** The query contains "CQRS" but the tsvector match isn't boosting `cqrs.txt` above `message_queues` and `design_patterns`. Fix: either expand `relevant_sources` to accept `event_sourcing` alone as sufficient (the retrieved answer is correct), or increase BM25 weight for exact acronym matches.
+
+- **q012 "What is Redis?" — system answers instead of refusing.** `distributed_caching.txt` and `distributed_locking.txt` mention Redis by name. This is in-corpus by proxy, so the system correctly answers from context but the eval treats it as a refusal failure. Fix: replace q012 with a topic that has zero mentions anywhere — e.g. "How does React's reconciliation algorithm work?"
+
+#### Eval quality
+
+- **Faithfulness is a word-overlap proxy.** Content words (>5 chars) in the answer are checked against the retrieved context. It rewards verbosity (gemma4 scores higher than llama3.1 simply by quoting more) and misses semantic hallucinations. Fix: LLM-as-judge — pass (answer, context) to a model and ask "is this answer supported by this context?" Costs one generation call per eval question.
+
+- **MRR hard = 0.75 (was 0.50).** Improvement came from two new targeted hard questions (q019, q020), not from architectural changes. The original hard question q010 still scores 0. True cross-doc synthesis (combining `fault_tolerance` + `circuit_breaker` + `saga_pattern` into one answer) requires multi-hop retrieval — retrieve top docs, extract key facts, re-query with those facts, then synthesise.
+
+#### Architecture gaps
+
+- **No API layer.** The system is a CLI loop (`while True: input()`). A FastAPI service would expose `/query` (POST, takes `{"question": "..."}`, returns `{"answer": "...", "sources": [...], "retrieval_ms": ..., "generation_ms": ...}`), `/health` (GET, checks DB + Ollama reachability), and `/stats` (GET, aggregates `logs/queries.jsonl` — total queries, refusal rate, avg latency). This is the highest-impact change for portfolio visibility.
+
+- **Generation latency unmeasured on gemma4.** Session 4 measured llama3.1 at ~5.5s generation / ~0.9s retrieval. After switching to gemma4, latency hasn't been re-measured. Run `python eval/analyze_logs.py` after a few queries to get the current p50/p95 breakdown. If gemma4 is slower, `llama3.2:3b` is a faster local alternative at lower quality.

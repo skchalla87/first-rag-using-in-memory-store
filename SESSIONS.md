@@ -243,19 +243,61 @@ Total: 13 → 21 documents.
 
 ---
 
-### Session 5: 2026-05-28 — Corpus Expansion + Ingestion Hardening
+### Session 5: 2026-05-28 — Corpus Expansion, Eval Hardening, Model Switch
 
 #### What Changed
 
+**Corpus & ingestion**
 - **Corpus: 33 → 105 documents.** Added 72 new docs via `generate_docs.py` (runs a local Ollama model, idempotent — skips already-generated files). Topics span algorithms & data structures, storage, networking, observability, security, AI/ML systems, infrastructure, and distributed systems depth topics.
 - **Ingestion hardened against re-runs.** `load_documents.py` previously had no deduplication — running it again would double-insert all documents. Fixed with two guards:
   1. Python: `load_documents.py` now calls `store.existing_sources()` at startup and skips any file whose stem is already in the DB. No wasted embedding calls.
   2. DB: Added `UNIQUE (source, chunk_index)` constraint. Even if the Python check were bypassed, the DB rejects duplicate rows silently via `ON CONFLICT DO NOTHING`.
 - **IVFFlat index rebuilt.** The index was built with `lists = 5` when the corpus was ~255 rows. Rule of thumb is `lists ≈ sqrt(row_count)`. With 1008 rows, rebuilt with `lists = 30`. Failure to do this would have degraded recall — the index would search too few clusters.
-- **Golden dataset: 12 → 20 questions.** q011 ("How does Kubernetes work?") was previously marked out-of-corpus and expected a refusal. After adding `kubernetes_fundamentals.txt`, the system would answer correctly but the metric would score it 0.0 (false failure). Fixed: q011 replaced with "How does Apache Spark process large datasets?" (genuinely absent). Added 8 new questions (q013–q020) covering the new docs: Kubernetes, consistent hashing, inverted index, SLO/SLA/SLI (easy); LSM trees + WAL, CQRS + event sourcing (medium); MVCC vs 2PC, TLS vs mTLS (hard).
+
+**LLM switched to gemma4**
+- `llm_model` changed from `llama3.1` to `gemma4`. The embedding model (`mxbai-embed-large`) and all retrieval components are unchanged — the DB rows are unaffected by LLM choice. Gemma4 writes longer, more structured bullet-pointed answers and quotes source text more verbatim than llama3.1 prose style.
+
+**Golden dataset: 12 → 20 questions (two rounds of fixes)**
+
+*Round 1 — corpus expansion:*
+- q011 "How does Kubernetes work?" was out-of-corpus but `kubernetes_fundamentals.txt` now exists — system would answer correctly but metric scored 0. Replaced with "How does Apache Spark process large datasets?".
+- Added 8 new questions (q013–q020): Kubernetes, consistent hashing, inverted index, SLO/SLA/SLI (easy); LSM trees + WAL, CQRS + event sourcing (medium); MVCC vs 2PC, TLS vs mTLS (hard).
+
+*Round 2 — post eval run analysis:*
+- "Apache Spark" also had to be replaced. `mapreduce.txt` explicitly mentions Spark as a comparison — the system retrieved it and answered correctly. Replaced with "How does React's virtual DOM work?" (zero corpus presence).
+- q001 `relevant_sources` expanded to include `pacelc_theorem`. With 105 docs, PACELC consistently ranks above CAP theorem for the query "What is the CAP theorem?" because PACELC is a direct extension of CAP. Both are valid sources.
+- q007 `relevant_sources` expanded to include `pacelc_theorem` and `geo_distributed_systems`. Both legitimately discuss strong vs. eventual consistency — the eval was penalising correct retrievals.
+
+**Prompt hardened against gemma4 over-refusal**
+- Added explicit rule: *"If context is provided, you MUST answer from it."* Gemma4 refused q006 "How does leader election work?" despite `leader_election.txt` being retrieved at rank 1. llama3.1 answered this correctly. The refusal was a model-specific behaviour, not a retrieval failure.
+
+**`refusal_correctness` metric fixed for partial answers**
+- Old behaviour: any refusal phrase in the answer → score 0.0, regardless of how much correct content preceded it.
+- New behaviour: if substantive content (>20 chars) exists before the refusal phrase → score 0.5. Correctly rewards models that answer what the context supports and refuse only the part it doesn't contain.
+- Triggered by q019 (MVCC vs 2PC): model answered the MVCC half correctly then said "I don't have information about the comparison to 2PC" — which is factually correct since 2PC wasn't retrieved.
+
+#### Eval Results
+
+Two runs on the same 20-question set, 105-doc corpus, gemma4:
+
+| Metric | Pre-fix | Post-fix | Δ |
+|---|---|---|---|
+| Precision | 0.733 | 0.792 | +0.059 |
+| Recall | 0.792 | 0.804 | +0.012 |
+| MRR | 0.833 | 0.900 | +0.067 |
+| Faithfulness | 0.639 | 0.681 | +0.042 |
+| Refusal Accuracy | 0.800 | 0.925 | +0.125 |
+| MRR easy | 0.939 | 1.000 | +0.061 |
+| MRR medium | 0.667 | 0.800 | +0.133 |
+| MRR hard | 0.750 | 0.750 | 0 |
+
+Post-fix numbers beat the Session 4 baseline on precision (+0.084), faithfulness (+0.087), and refusal accuracy (+0.008) on a harder and larger test set.
 
 #### Key Learnings
 
-- **Eval datasets rot as the corpus grows.** A question that was out-of-corpus becomes in-corpus the moment you add the relevant doc. Always check every out-of-corpus question against the current doc list before running eval.
+- **Eval datasets rot as the corpus grows.** A question that was out-of-corpus becomes in-corpus the moment you add the relevant doc. Also: a topic doesn't need its own document to be in-corpus — if another doc mentions it by name (Spark in mapreduce.txt, Redis in distributed_caching.txt), the system will answer from it. Always scan out-of-corpus questions against the full corpus text, not just filenames.
 - **IVFFlat list count matters at scale.** Too few lists = the index scans too few clusters = lower recall. The index doesn't error — it silently returns lower-quality results. Profile recall vs. list count if retrieval quality degrades after a large corpus expansion.
-- **Idempotent ingestion is a forcing function for safety.** Without it, the natural urge to "just re-run" after adding docs will silently corrupt the DB with duplicate rows that inflate scores and slow down queries.
+- **Idempotent ingestion is a forcing function for safety.** Without it, the natural urge to "just re-run" after adding docs will silently corrupt the DB with duplicate rows that inflate scores and slow queries.
+- **LLM switching changes answer style, not retrieval.** Switching from llama3.1 to gemma4 left all embeddings and retrieval scores unchanged. The visible differences (longer answers, more bullet points, higher word-overlap faithfulness) are entirely generation-layer effects. Evaluate retrieval metrics (precision, recall, MRR) independently of generation metrics (faithfulness) when swapping models.
+- **Gemma4 is more conservative than llama3.1.** It over-refuses when context is marginal or indirect. The prompt rule "if context is provided you MUST answer from it" mitigated this, but it's a model-level tendency — watch for it on new question types.
+- **Eval metrics must match real model behaviour.** The binary refusal_correctness metric penalised correct partial answers (answer what you can, refuse what you can't). A metric that only recognises two states (answered/refused) will mislead you when the model does the right thing in a way the metric doesn't anticipate.

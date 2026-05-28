@@ -25,7 +25,7 @@ class RAGSystem:
     def __init__(
         self,
         embedding_model: str = "mxbai-embed-large",
-        llm_model: str = "llama3.1",
+        llm_model: str = "gemma4:e4b-mlx",
         chunk_size: int = 200,
         overlap: int = 50,
         chunker_type: str = "paragraph",  # "character" or "paragraph"
@@ -193,8 +193,9 @@ class RAGSystem:
             prompt = f"""You are a helpful assistant. Answer the question using ONLY the context provided below.
 
         Rules:
+        - If context is provided, you MUST answer from it. Do NOT say you lack information when context is present.
         - Base your answer strictly on the context. Do NOT use outside knowledge.
-        - If the context does not contain the answer, respond with: "I don't have information about this in the provided documents."
+        - Only say "I don't have information about this in the provided documents." if the context is truly empty or contains nothing related to the question.
         - Quote or reference the source when possible.
 
         Context:

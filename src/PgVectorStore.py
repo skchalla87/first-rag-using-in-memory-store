@@ -26,6 +26,7 @@ class PgVectorStore:
                 """
                 INSERT INTO documents (source, chunk_index, content, embedding)
                 VALUES (%s, %s, %s, %s)
+                ON CONFLICT (source, chunk_index) DO NOTHING
                 """,
                 (source, chunk_index, chunk, embedding.tolist())
             )
@@ -120,6 +121,13 @@ class PgVectorStore:
             for row in results
         ]
         
+    def existing_sources(self) -> set:
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT DISTINCT source FROM documents")
+        sources = {row[0] for row in cursor.fetchall()}
+        cursor.close()
+        return sources
+
     def count_documents(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM documents")

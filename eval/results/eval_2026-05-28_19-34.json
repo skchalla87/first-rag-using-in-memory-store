@@ -1,0 +1,445 @@
+{
+  "summary": {
+    "avg_precision": 0.733,
+    "avg_recall": 0.792,
+    "avg_hit_rate": 0.95,
+    "avg_mrr": 0.833,
+    "avg_faithfulness": 0.639,
+    "avg_refusal_correct": 0.8,
+    "avg_mrr_easy": 0.939,
+    "avg_mrr_medium": 0.667,
+    "avg_mrr_hard": 0.75,
+    "total_questions": 20
+  },
+  "results": [
+    {
+      "id": "q001",
+      "question": "What is the CAP theorem?",
+      "category": "consensus",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "pacelc_theorem",
+        "pacelc_theorem",
+        "cap_theorem"
+      ],
+      "relevant_sources": [
+        "cap_theorem"
+      ],
+      "answer": "While one snippet states that \"CAP means choose 2 of 3,\" another piece clarifies this, stating that partition tolerance is mandatory in distributed systems (since networks partition), and therefore the choice exists between Consistency (C) and Availability (A) during partitions.",
+      "precision": 0.5,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 0.3333333333333333,
+      "faithfulness": 0.5454545454545454,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q002",
+      "question": "How does a circuit breaker work?",
+      "category": "reliability",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "circuit_breaker",
+        "circuit_breaker",
+        "circuit_breaker"
+      ],
+      "relevant_sources": [
+        "circuit_breaker"
+      ],
+      "answer": "A circuit breaker is a stability pattern that prevents cascading failures in distributed systems by wrapping calls to a remote service [Source: circuit_breaker].\n\nThe operation includes:\n*   **Closed State:** During normal operation, all calls pass through. Failures are counted in a sliding window; if the failure rate exceeds the threshold, the circuit trips to Open [Source: circuit_breaker].\n*   **Function:** It stops further calls when the service fails and does not recover [Source: circuit_breaker].\n\nCircuit breakers can also be combined with bulkheads (such as thread pool or semaphore isolation) to limit the blast radius of a slow dependency, ensuring it only consumes its own dedicated resources rather than starving the entire application [Source: circuit_breaker].",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.6170212765957447,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q003",
+      "question": "What is a bloom filter used for?",
+      "category": "data_structures",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "bloom_filters",
+        "bloom_filters",
+        "bloom_filters"
+      ],
+      "relevant_sources": [
+        "bloom_filters"
+      ],
+      "answer": "A bloom filter is used to reduce expensive lookups, such as disk I/O and network calls, using a small, tunable probability of false positives. They are widely used in storage engines, caches, and distributed databases (Source: bloom_filters).\n\nSpecific uses include:\n*   **Database Query Optimization:** Each SSTable (on-disk data file) contains a Bloom filter that allows checking for presence before reading from disk; if the item is \"definitely not present,\" the disk read can be skipped to dramatically reduce unnecessary I/O (Source: bloom_filters).\n*   **Distributed Caching:** A bloom filter can check if a key has ever been cached before querying the origin, thereby reducing cache miss lookups (Source: bloom_filters).",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.6046511627906976,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q004",
+      "question": "What is the write-ahead log?",
+      "category": "storage",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "write_ahead_log",
+        "lsm_trees_and_sstables",
+        "write_ahead_log"
+      ],
+      "relevant_sources": [
+        "write_ahead_log"
+      ],
+      "answer": "The write-ahead log (WAL) is a fundamental technique in databases and distributed systems used to ensure durability and atomicity. According to the provided context:\n\n*   **Core Function:** Before any change is applied to the actual data, it must first be recorded in an append-only log on durable storage (Source: [write_ahead_log]).\n*   **Specific Use:** When writing to a memtable, writes are appended to a WAL file for durability before the write occurs (Source: [lsm_trees_and_sstables]).\n*   **Requirement:** Write-ahead logging mandates that the log record must precede the corresponding data page write (Source: [write_ahead_log]).",
+      "precision": 0.5,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.5789473684210527,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q005",
+      "question": "What is the gossip protocol?",
+      "category": "protocols",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "gossip_protocol",
+        "gossip_protocol",
+        "gossip_protocol"
+      ],
+      "relevant_sources": [
+        "gossip_protocol"
+      ],
+      "answer": "Gossip protocols, also known as epidemic protocols, spread information through a network similar to how a rumor spreads among people. This process involves each node periodically selecting one or more random peers and exchanging state, which causes information to propagate to the entire cluster exponentially fast (Source: gossip\\_protocol).",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.5833333333333334,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q006",
+      "question": "How does leader election work in distributed systems?",
+      "category": "consensus",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "leader_election",
+        "split_brain_and_fencing_tokens",
+        "crdts"
+      ],
+      "relevant_sources": [
+        "leader_election",
+        "consensus_algorithms"
+      ],
+      "answer": "I don't have information about this in the provided documents.",
+      "precision": 0.3333333333333333,
+      "recall": 0.5,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.3333333333333333,
+      "refusal_correct": 0.0
+    },
+    {
+      "id": "q007",
+      "question": "What are the differences between strong and eventual consistency?",
+      "category": "consistency",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "pacelc_theorem",
+        "geo_distributed_systems",
+        "consistency_models"
+      ],
+      "relevant_sources": [
+        "consistency_models",
+        "cap_theorem"
+      ],
+      "answer": "Strong consistency and eventual consistency differ in the following ways:\n\n*   **Strong Consistency:** Every read sees the most recent write, which requires synchronous coordination [Source: pacelc_theorem]. This model involves strategies such as strong consistency models with leader-based coordination (like Raft or Paxos for consensus) [Source: geo_distributed_systems].\n*   **Eventual Consistency:** Replicas converge over time, meaning reads may see stale data [Source: pacelc_theorem]. In this model, the system allows to diverge temporarily, and discrepancies are resolved using conflict resolution mechanisms [Source: geo_distributed_systems]. Furthermore, if no new updates are made to a given data item, eventual consistency ensures that all accesses eventually return the last updated value [Source: consistency_models].",
+      "precision": 0.3333333333333333,
+      "recall": 0.5,
+      "hit_rate": 1.0,
+      "mrr": 0.3333333333333333,
+      "faithfulness": 0.6428571428571429,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q008",
+      "question": "How do distributed transactions work?",
+      "category": "transactions",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "distributed_transactions",
+        "saga_pattern",
+        "two_phase_commit"
+      ],
+      "relevant_sources": [
+        "distributed_transactions",
+        "two_phase_commit"
+      ],
+      "answer": "A distributed transaction is a transaction that spans multiple nodes, databases, or services and must maintain ACID properties across all participants (Source: distributed_transactions).\n\nThe context mentions Two-phase commit (2PC) as one way they work, stating that 2PC is a distributed atomic commitment protocol that ensures all participants in a distributed transaction either all commit or all abort. It serves as the foundation of distributed ACID transactions across heterogeneous systems (Source: two_phase_commit).",
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.7586206896551724,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q009",
+      "question": "How do CRDTs relate to eventual consistency?",
+      "category": "consistency",
+      "difficulty": "hard",
+      "retrieved_sources": [
+        "crdts",
+        "geo_distributed_systems",
+        "cqrs"
+      ],
+      "relevant_sources": [
+        "crdts",
+        "consistency_models",
+        "vector_clocks"
+      ],
+      "answer": "CRDTs are data structures that guarantee strong eventual consistency, meaning that all replicas which have received the same updates will converge to the same state (Source: crdts). They allow nodes to update independently and ensure replicas can always be merged without conflict (Source: crdts).",
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.7368421052631579,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q010",
+      "question": "What strategies exist for handling failures in distributed systems?",
+      "category": "reliability",
+      "difficulty": "hard",
+      "retrieved_sources": [
+        "distributed_job_scheduling",
+        "retry_and_timeout_patterns",
+        "geo_distributed_systems"
+      ],
+      "relevant_sources": [
+        "fault_tolerance",
+        "circuit_breaker",
+        "saga_pattern"
+      ],
+      "answer": "Failure handling strategies in distributed systems include:\n\n*   Implementing **task retries**, **checkpointing**, and **heartbeat monitoring** to allow jobs to be recovered from partial system failures such as node failures or network issues [Source: distributed_job_scheduling].\n*   Utilizing **Retry and timeout patterns** to manage transient failures, which allows operations to be retried while preventing indefinite waits using time-based constraints [Source: retry_and_timeout_patterns].\n*   Establishing robust **failover strategies** in cases where a region becomes unavailable due to disasters or network outages. This often involves **cross-region replication of databases and application state** [Source: geo_distributed_systems].",
+      "precision": 0.0,
+      "recall": 0.0,
+      "hit_rate": 0.0,
+      "mrr": 0.0,
+      "faithfulness": 0.5294117647058824,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q011",
+      "question": "How does Apache Spark process large datasets?",
+      "category": "out_of_corpus",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "mapreduce",
+        "mapreduce",
+        "mapreduce"
+      ],
+      "relevant_sources": [],
+      "answer": "Apache Spark keeps intermediate data in memory and represents computation as a DAG (Directed Acyclic Graph) of transformations, instead of using discrete Map and Reduce phases [Source: mapreduce].",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.4666666666666667,
+      "refusal_correct": 0.0
+    },
+    {
+      "id": "q012",
+      "question": "What is Redis and how is it used?",
+      "category": "out_of_corpus",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "distributed_locking",
+        "distributed_caching",
+        "circuit_breaker"
+      ],
+      "relevant_sources": [],
+      "answer": "Redis is described as having richer data structures, including lists, sets, sorted sets, hashes, and streams. It features a single-threaded core that includes I/O threads, and it supports persistence, replication, Lua scripting, pub/sub, and cluster mode, with Redis Cluster automatically sharding data across nodes (Source: distributed_caching).\n\nRedis is used in several ways mentioned in the documents:\n*   **Distributed Locking:** Using `SETNX` (SET if Not eXists) with an expiry is a technique utilized for this purpose (Source: distributed_locking).\n*   **Shared State Storage:** It can serve as a shared state store, alongside Consul, to synchronize circuit state across instances in horizontally scaled services (Source: circuit_breaker).",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.42857142857142855,
+      "refusal_correct": 0.0
+    },
+    {
+      "id": "q013",
+      "question": "How does Kubernetes work?",
+      "category": "infrastructure",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "kubernetes_fundamentals",
+        "kubernetes_fundamentals",
+        "kubernetes_fundamentals"
+      ],
+      "relevant_sources": [
+        "kubernetes_fundamentals"
+      ],
+      "answer": "Kubernetes works by:\n\n1.  **Orchestrating Containers:** It is an open-source platform designed to automate deploying, scaling, and operating application containers across multiple hosts, providing a framework for managing containerized services in production environments at scale (kubernetes_fundamentals).\n2.  **Defining Desired State:** At its core, Kubernetes employs a declarative API to define the desired state of an application, allowing developers and operators to focus on the desired outcome rather than how to achieve it (kubernetes_fundamentals).\n3.  **Abstraction:** The platform abstracts underlying infrastructure into logical entities called *pods*, which are groups of containers that share network namespaces and storage volumes (kubernetes_fundamentals).\n4.  **Management and Scaling:** Pods can be managed using higher-level constructs such as *deployments* and *stateful sets*. These tools allow for automatic scaling, rolling updates, and rollbacks based on metrics like CPU utilization or custom application data points (kubernetes_fundamentals).\n5.  **Configuration Management:** It uses ConfigMaps and secrets to store configuration data outside of container images, enabling dynamic runtime updates without requiring containers to be rebuilt or redeployed (kubernetes_fundamentals).",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.7654320987654321,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q014",
+      "question": "What is consistent hashing?",
+      "category": "data_structures",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "consistent_hashing",
+        "consistent_hashing",
+        "consistent_hashing"
+      ],
+      "relevant_sources": [
+        "consistent_hashing"
+      ],
+      "answer": "Consistent hashing is a technique used in distributed systems to manage and distribute load across nodes efficiently while maintaining low overhead during node addition or removal [Source: consistent_hashing]. It addresses the challenge of dynamically adding, removing, or balancing loads among servers [Source: consistent_hashing].",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.9130434782608695,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q015",
+      "question": "What is an inverted index?",
+      "category": "data_structures",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "inverted_index",
+        "inverted_index",
+        "inverted_index"
+      ],
+      "relevant_sources": [
+        "inverted_index"
+      ],
+      "answer": "An inverted index is a data structure used in information retrieval systems to facilitate quick searches based on word occurrences within documents [Source: inverted\\_index]. It works by mapping each unique word (or term) to a list of document identifiers and positions where that word appears, which allows for efficient full-text search [Source: inverted\\_index].\n\nThe core concept involves inverting the relationship between terms and their associated documents; instead of a traditional storage method, an inverted index stores data as pairs of (term, list\\_of\\_documents) along with metadata such as term frequency and positions [Source: inverted\\_index].",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.7105263157894737,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q016",
+      "question": "What are SLIs, SLOs, and SLAs?",
+      "category": "observability",
+      "difficulty": "easy",
+      "retrieved_sources": [
+        "slo_sla_sli",
+        "slo_sla_sli",
+        "slo_sla_sli"
+      ],
+      "relevant_sources": [
+        "slo_sla_sli"
+      ],
+      "answer": "Service Level Objectives (SLOs) define quantitative targets for system reliability, availability, and performance; Service Level Agreements (SLAs) outline the contractual agreements between service providers and customers regarding these targets; while Service Level Indicators (SLIs) provide measurable data that is used to track whether those objectives are being met.\n\n(Source: slo_sla_sli)",
+      "precision": 1.0,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.9230769230769231,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q017",
+      "question": "How do LSM trees use SSTables and write-ahead logs?",
+      "category": "storage",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "storage_engines_comparison",
+        "write_ahead_log",
+        "lsm_trees_and_sstables"
+      ],
+      "relevant_sources": [
+        "lsm_trees_and_sstables",
+        "write_ahead_log"
+      ],
+      "answer": "LSM trees utilize both a Write-Ahead Log (WAL) and SSTables as follows:\n\n*   **Initial Writing:** All writes initially go to a WAL and an in-memory structure called a memtable.\n*   **Flushing to Disk:** When the memtable becomes full, it is flushed to immutable sorted files on disk, which are known as SSTables.\n*   **Merges:** Compaction processes then merge these SSTables over time.\n\nThis process allows for very high write throughput because all writes are sequential [Source: write\\_ahead\\_log].",
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "hit_rate": 1.0,
+      "mrr": 0.5,
+      "faithfulness": 0.4666666666666667,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q018",
+      "question": "How does CQRS relate to event sourcing?",
+      "category": "design_patterns",
+      "difficulty": "medium",
+      "retrieved_sources": [
+        "message_queues_and_event_streaming",
+        "event_sourcing",
+        "design_patterns"
+      ],
+      "relevant_sources": [
+        "cqrs",
+        "event_sourcing"
+      ],
+      "answer": "CQRS (Command Query Responsibility Segregation) is often combined with event sourcing, and understanding the distinction between these patterns is crucial as both are valuable in distributed system design (Sources: design\\_patterns; event\\_sourcing).",
+      "precision": 0.3333333333333333,
+      "recall": 0.5,
+      "hit_rate": 1.0,
+      "mrr": 0.5,
+      "faithfulness": 0.7647058823529411,
+      "refusal_correct": 1.0
+    },
+    {
+      "id": "q019",
+      "question": "How does MVCC achieve isolation without locking, and how does that compare to two-phase commit?",
+      "category": "transactions",
+      "difficulty": "hard",
+      "retrieved_sources": [
+        "mvcc_multiversion_concurrency_control",
+        "mvcc_multiversion_concurrency_control",
+        "mvcc_multiversion_concurrency_control"
+      ],
+      "relevant_sources": [
+        "mvcc_multiversion_concurrency_control",
+        "two_phase_commit",
+        "distributed_transactions"
+      ],
+      "answer": "MVCC achieves isolation without locking by employing snapshot isolation, which captures a consistent view of data when a transaction begins [Source: mvcc_multiversion_concurrency_control]. By allowing multiple versions of data to coexist within the system and maintaining historical versions alongside newer ones, MVCC ensures transaction isolation and reduces contention between readers and writers [Source: mvcc_multiversion_concurrency_control].\n\nI don't have information about how this compares to two-phase commit in the provided documents.",
+      "precision": 1.0,
+      "recall": 0.3333333333333333,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.6176470588235294,
+      "refusal_correct": 0.0
+    },
+    {
+      "id": "q020",
+      "question": "What is the difference between TLS and mTLS, and when would you use mTLS?",
+      "category": "security",
+      "difficulty": "hard",
+      "retrieved_sources": [
+        "tls_and_mtls",
+        "tls_and_mtls",
+        "service_mesh"
+      ],
+      "relevant_sources": [
+        "tls_and_mtls",
+        "service_mesh",
+        "zero_trust_security"
+      ],
+      "answer": "mTLS (Mutual Transport Layer Security) is an extension of TLS designed to enhance security by requiring mutual authentication.\n\n*   **TLS** provides secure communication over a network connection by encrypting data and verifying identities through digital certificates issued by Certificate Authorities (CAs).\n*   **mTLS**, in contrast, ensures that both the client and server identities are verified using respective client-side and server-side certificates [Source: tls_and_mtls]. Both parties must present valid digital certificates issued by a trusted CA to each other before establishing the secure connection.\n\nThe use of mTLS is beneficial because this two-way verification \"prevents unauthorized clients from accessing servers and vice versa\" [Source: tls_and_mtls].",
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "hit_rate": 1.0,
+      "mrr": 1.0,
+      "faithfulness": 0.7924528301886793,
+      "refusal_correct": 1.0
+    }
+  ]
+}

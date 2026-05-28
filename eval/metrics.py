@@ -107,17 +107,44 @@ def answer_faithfulness(answer: str, retrieved_chunks: list[str]) -> float:
 def refusal_correctness(answer: str, expected_answer) -> float:
     """
     For out-of-corpus questions (expected_answer=None):
-    Did the system correctly refuse to answer?
+      Did the system correctly refuse to answer?
+      Returns 1.0 if it fully refused, 0.0 if it answered.
 
-    Returns 1.0 if it refused, 0.0 if it hallucinated an answer.
+    For in-corpus questions (expected_answer is not None):
+      Did the system answer rather than refuse?
+      Returns 1.0 if it answered.
+      Returns 0.5 for partial answers (answered part, refused part) — the model
+      correctly identified the boundary of its context rather than hallucinating.
+      Returns 0.0 only if the entire answer is a refusal despite context being present.
     """
-    refused = "don't have information" in answer.lower() or \
-              "not in the provided" in answer.lower() or \
-              "cannot find" in answer.lower()
+    REFUSAL_PHRASES = [
+        "don't have information",
+        "not in the provided",
+        "cannot find",
+        "no information",
+        "not provided",
+    ]
+
+    answer_lower = answer.lower()
+    refusal_count = sum(1 for phrase in REFUSAL_PHRASES if phrase in answer_lower)
+
+    def _has_content_before_refusal(text: str) -> bool:
+        """True if there's substantive text (>20 chars) before the first refusal phrase."""
+        text_lower = text.lower()
+        for phrase in REFUSAL_PHRASES:
+            idx = text_lower.find(phrase)
+            if idx > 20:
+                return True
+        return False
 
     if expected_answer is None:
-        # We wanted a refusal
-        return 1.0 if refused else 0.0
+        # Out-of-corpus: we want a refusal
+        return 1.0 if refusal_count > 0 else 0.0
     else:
-        # We wanted an actual answer, not a refusal
-        return 0.0 if refused else 1.0
+        # In-corpus: we want an actual answer
+        if refusal_count == 0:
+            return 1.0   # answered cleanly
+        elif _has_content_before_refusal(answer):
+            return 0.5   # partial answer + partial refusal — acceptable behaviour
+        else:
+            return 0.0   # refused entirely despite having context

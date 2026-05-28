@@ -25,9 +25,17 @@ def load_documents(
         print(f"No .txt files found in {docs_dir}")
         return
 
-    print(f"Found {len(txt_files)} documents. Starting load...\n")
+    already_ingested = store.existing_sources()
+    new_files = [f for f in sorted(txt_files) if f.stem not in already_ingested]
 
-    for file_path in sorted(txt_files):
+    print(f"Found {len(txt_files)} documents ({len(already_ingested)} already in DB, {len(new_files)} new).\n")
+
+    if not new_files:
+        print("Nothing to ingest.")
+        store.close()
+        return
+
+    for file_path in new_files:
         source = file_path.stem
         text = file_path.read_text(encoding="utf-8")
 

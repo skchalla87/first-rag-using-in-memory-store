@@ -240,3 +240,22 @@ Total: 13 → 21 documents.
 - Cross-encoder score gap between rank 1 and rank 3 is a proxy for retrieval confidence — tight clustering = ambiguous query
 - Generation is the bottleneck (5.5s) not retrieval (0.9s) — optimize LLM choice before optimizing retrieval pipeline
 - MRR hard = 0.5 is a known limitation — cross-doc synthesis requires query expansion or multi-hop retrieval, not tunable with current architecture
+
+---
+
+### Session 5: 2026-05-28 — Corpus Expansion + Ingestion Hardening
+
+#### What Changed
+
+- **Corpus: 33 → 105 documents.** Added 72 new docs via `generate_docs.py` (runs a local Ollama model, idempotent — skips already-generated files). Topics span algorithms & data structures, storage, networking, observability, security, AI/ML systems, infrastructure, and distributed systems depth topics.
+- **Ingestion hardened against re-runs.** `load_documents.py` previously had no deduplication — running it again would double-insert all documents. Fixed with two guards:
+  1. Python: `load_documents.py` now calls `store.existing_sources()` at startup and skips any file whose stem is already in the DB. No wasted embedding calls.
+  2. DB: Added `UNIQUE (source, chunk_index)` constraint. Even if the Python check were bypassed, the DB rejects duplicate rows silently via `ON CONFLICT DO NOTHING`.
+- **IVFFlat index rebuilt.** The index was built with `lists = 5` when the corpus was ~255 rows. Rule of thumb is `lists ≈ sqrt(row_count)`. With 1008 rows, rebuilt with `lists = 30`. Failure to do this would have degraded recall — the index would search too few clusters.
+- **Golden dataset: 12 → 20 questions.** q011 ("How does Kubernetes work?") was previously marked out-of-corpus and expected a refusal. After adding `kubernetes_fundamentals.txt`, the system would answer correctly but the metric would score it 0.0 (false failure). Fixed: q011 replaced with "How does Apache Spark process large datasets?" (genuinely absent). Added 8 new questions (q013–q020) covering the new docs: Kubernetes, consistent hashing, inverted index, SLO/SLA/SLI (easy); LSM trees + WAL, CQRS + event sourcing (medium); MVCC vs 2PC, TLS vs mTLS (hard).
+
+#### Key Learnings
+
+- **Eval datasets rot as the corpus grows.** A question that was out-of-corpus becomes in-corpus the moment you add the relevant doc. Always check every out-of-corpus question against the current doc list before running eval.
+- **IVFFlat list count matters at scale.** Too few lists = the index scans too few clusters = lower recall. The index doesn't error — it silently returns lower-quality results. Profile recall vs. list count if retrieval quality degrades after a large corpus expansion.
+- **Idempotent ingestion is a forcing function for safety.** Without it, the natural urge to "just re-run" after adding docs will silently corrupt the DB with duplicate rows that inflate scores and slow down queries.

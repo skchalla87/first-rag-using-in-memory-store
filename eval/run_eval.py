@@ -27,7 +27,7 @@ from metrics import (
 def run_eval(top_k: int = 3) -> dict:
     
     print("initializing RAG system...")
-    myRAG = RAGSystem()
+    myRAG = RAGSystem(launch_phoenix=False)
     
     results = []
     for item in GOLDEN_DATASET:

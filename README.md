@@ -519,21 +519,30 @@ in-corpus question (expected_answer is set):
 
 **Important:** Measure precision/recall *before* parent retrieval expansion. Parent retrieval inflates the source count, making precision look artificially low.
 
-#### Current Eval Metrics (Session 4 — 2026-04-02, 12 questions, 33 docs)
+#### Current Eval Metrics (Session 5 — 2026-05-28, 20 questions, 105 docs)
 
 | Metric | Score |
 |---|---|
-| Precision | 0.708 |
-| Recall | 0.806 |
-| MRR | 0.917 |
-| Faithfulness | 0.594 |
+| Precision | 0.792 |
+| Recall | 0.804 |
+| Hit Rate | 0.950 |
+| MRR | 0.900 |
+| Faithfulness | 0.681 |
+| Refusal Accuracy | 0.925 |
 | MRR easy | 1.000 |
-| MRR medium | 1.000 |
-| MRR hard | 0.500 |
+| MRR medium | 0.800 |
+| MRR hard | 0.750 |
 
-**MRR hard = 0.500** is a known architectural gap. Hard questions require cross-doc synthesis (e.g., "How do CRDTs relate to eventual consistency?"). The current single-pass retrieval can't combine information from multiple documents — it picks the best single source. Fix requires query expansion or multi-hop retrieval.
+**Before/after — key tuning milestones:**
 
-*Note: eval numbers above are from Session 4 with 33 docs and 12 questions. Re-run `eval/run_eval.py` to get updated numbers after the corpus expanded to 105 docs and 20 questions.*
+| Milestone | Precision | Recall | MRR |
+|---|---|---|---|
+| Baseline (Session 4, chunk=1000, top_k=5) | 0.575 | 0.819 | 0.854 |
+| Chunk size 1000 → 500 | 0.604 | — | — |
+| top_k 5 → 3 | 0.708 | 0.806 | 0.917 |
+| Corpus 33 → 105 docs, 20 questions (Session 5) | **0.792** | **0.804** | **0.900** |
+
+**MRR hard = 0.750** reflects the remaining architectural gap: hard questions requiring cross-doc synthesis (e.g., "How does MVCC compare to two-phase commit?") are still bounded by single-pass retrieval. Fix requires query expansion or multi-hop retrieval.
 
 ---
 

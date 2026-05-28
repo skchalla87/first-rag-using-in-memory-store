@@ -15,7 +15,11 @@ ivfflat is an indexing method that partitions vectors into clusters (called "lis
 lists = 5 is appropriate for a small corpus. Rule of thumb: lists should be roughly sqrt(number_of_rows). With ~100-200 chunks,
  5-10 lists is fine. You'd increase this as the corpus grows.
 **/
-CREATE INDEX idx_embedding ON documents USING ivfflat (embedding vector_cosine_ops) WITH (lists = 5);
+-- Prevents re-ingestion from creating duplicate rows on repeated load_documents.py runs
+ALTER TABLE documents ADD CONSTRAINT uq_source_chunk UNIQUE (source, chunk_index);
+
+-- lists ≈ sqrt(row_count). Rebuild with REINDEX if corpus grows significantly.
+CREATE INDEX idx_embedding ON documents USING ivfflat (embedding vector_cosine_ops) WITH (lists = 30);
 
 
 /**

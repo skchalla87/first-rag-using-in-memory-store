@@ -31,6 +31,7 @@ class RAGSystem:
         chunker_type: str = "paragraph",  # "character" or "paragraph"
         parent_retrieval: bool = False,  # fetch ALL chunks from matched docs
         connection_string: str = "postgresql://raguser:ragpass@localhost:5432/ragdb",
+        launch_phoenix: bool = True,  # set False to suppress Phoenix UI (e.g. in eval runs)
     ):
         """
         Args:
@@ -59,8 +60,8 @@ class RAGSystem:
         self.embedding_generator = EmbeddingGenerator(embedding_model)
         self.vector_store = PgVectorStore(connection_string)
         self.llm_model = llm_model
-        # Start Phoenix UI and register tracer
-        px.launch_app()
+        if launch_phoenix:
+            px.launch_app()
         register()
         self.tracer = trace.get_tracer(__name__)
 
